@@ -1,0 +1,32 @@
+﻿@{
+    ViewData["Title"] = "Sign in page";
+}
+@model LogInModel
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<!Doctype html>
+<html lang="Russian">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Вход</title>
+    <link rel="stylesheet" href="~/css/nav-home-reg-sign.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="container">
+        <main role="main" class="pb-3">
+            <div class="form-div">
+                <form class="initial-form">
+                    <input name="Email" placeholder="Email" class="data-account form-element">
+                    <input name="Password" placeholder="Password" class="data-account form-element">
+                    <a asp-area="" asp-controller="Authorization" asp-action="Profile"><button class="button registration-button form-element"><span class="registration-button-title">Log in</span></button></a><br>
+                    <a asp-area="" asp-controller="Authorization" asp-action="Forgotten" class="form-element-forgot"><u>forgot your password?</a>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

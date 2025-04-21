@@ -1,0 +1,25 @@
+services:
+  myapi:
+    image: myapi
+    build:
+      context: .
+      dockerfile: C:\Users\user\Desktop\Blog\Dockerfile
+    ports:
+      - "5000:80"
+    depends_on:
+      - postgres1
+
+  postgres1:
+    image: postgres:latest
+    container_name: postgres1
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: yourpassword
+    volumes:
+      - ./postgres1:/var/lib/postgresql
+    ports:
+      - "5434:5432"
+volumes:
+  postgres:
+    

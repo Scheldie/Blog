@@ -1,0 +1,62 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@model LogInModel
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<!DOCTYPE html>
+<html lang="Russian">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Главная</title>
+    <link rel="stylesheet" href="css/nav-home-reg-sign.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="container">
+        <main role="main" class="pb-3">
+            <div class="index-form-div">
+                <form class="index-form">
+                    <h1 class="index-title">Start blogging now!</h1>
+                    <h2 class="index-subtitle">Register or sign in</h2>
+                    <ul class="Register-or-sign-buttons">
+                        <li>
+                            <a>
+                                <button asp-area="" asp-controller="Authorization" asp-action="LogIn" class="button sign-button">Log in</button>
+                            </a>
+                        </li>
+                        <li>
+                            <a>
+                                <button asp-area="" asp-controller="Authorization" asp-action="SignUp" class="button registration-button">Sign up</button>
+                            </a>
+                        </li>
+                    </ul>
+                </form>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>
+
+@* <div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <p><a href="~/Contacts/Index">Contacts</a></p>
+</div>
+<form method="post" asp-controller="Home" asp-action="About">
+
+    <label asp-for="Email"></label>
+    <input asp-for="Email" />
+    <span asp-validation-for="Email"></span>
+
+    <label asp-for="Password"></label>
+    <input asp-for="Password" />
+    <span asp-validation-for="Password"></span>
+
+    <input type="submit" value="Отправить"></input>
+</form> *@
