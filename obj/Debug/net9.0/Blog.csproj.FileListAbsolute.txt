@@ -333,3 +333,4 @@ C:\Users\user\Desktop\Blog\obj\Debug\net9.0\refint\Blog.dll
 C:\Users\user\Desktop\Blog\obj\Debug\net9.0\Blog.pdb
 C:\Users\user\Desktop\Blog\obj\Debug\net9.0\Blog.genruntimeconfig.cache
 C:\Users\user\Desktop\Blog\obj\Debug\net9.0\ref\Blog.dll
+C:\Users\user\Desktop\Blog\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt

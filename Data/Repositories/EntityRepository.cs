@@ -3,7 +3,7 @@ using Blog.Data.Intefaces;
 
 namespace Blog.Data.Repositories
 {
-    public abstract class EntityRepository<TEntity> where TEntity : class, IEntity
+    public abstract class EntityRepository<IEntity> where IEntity : class, Intefaces.IEntity
     {
         private protected readonly BlogDbContext DbContext;
 
@@ -12,22 +12,22 @@ namespace Blog.Data.Repositories
             DbContext = dbContext;
         }
 
-        public TEntity GetEntity(int entityId)
+        public IEntity GetEntity(int entityId)
         {
-            return DbContext.Find<TEntity>(entityId);
+            return DbContext.Find<IEntity>(entityId);
         }
 
-        public void AddEntity(TEntity entity)
+        public void AddEntity(IEntity entity)
         {
             DbContext.Add(entity);
         }
 
         public void DeleteEntity(int entityId)
         {
-            var entity = DbContext.Find<TEntity>(entityId);
+            var entity = DbContext.Find<IEntity>(entityId);
             DbContext.Remove(entity);
         }
-        public void UpdateEntity(TEntity entity)
+        public void UpdateEntity(IEntity entity)
         {
             DbContext.Entry(entity).State = EntityState.Modified;
         }
