@@ -1,5 +1,6 @@
 ﻿using Blog.Data.Intefaces;
 using Blog.Models;
+using Blog.Entites;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace Blog.Entities
@@ -12,17 +13,20 @@ namespace Blog.Entities
 
         public string Description { get; set; }
 
-        public User Author { get; set; }
+        public virtual User Author { get; set; }
+        
+        public int UserId { get; set; }
+        
+        public DateTime CreatedAt { get; set; }
 
-        public DateTime Date { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
-        public Post(int id, string title, string description, User author, DateTime date)
-        {
-            Id = id; 
-            Title = title; 
-            Description = description;  
-            Author = author; 
-            Date = date;
-        }
+        public DateTime PublishedAt { get; set; }
+
+        public int ImagesCount { get; set; }
+
+        public virtual IEnumerable<Image> Images { get; set; }
+
+        public virtual IEnumerable<Like> Likes { get; set; }
     }
 }

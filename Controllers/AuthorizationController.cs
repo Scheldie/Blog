@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Blog.Data.Intefaces;
 using Blog.Data.Repositories;
-using Blog.Models;
 using Blog.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Blog.Entities;
 using Blog.Data;
+using Blog.Models;
 
 namespace Blog.Controllers
 {

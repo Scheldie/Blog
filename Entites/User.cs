@@ -1,4 +1,5 @@
 ﻿using Blog.Data.Intefaces;
+using Blog.Entites;
 using Blog.Models;
 
 namespace Blog.Entities
@@ -13,6 +14,17 @@ namespace Blog.Entities
 
         public string Email { get; set; } 
 
+        public string Bio { get; set; } //о себе
+
+        public DateTime CreatedAt { get; set; }
+
+        public DateTime LastUpdatedAt { get; set; }
+
+        public DateTime LastLoginedAt { get; set; }
+
+        public virtual Image Avatar { get; set; } 
+
+        public virtual IEnumerable<Post> Posts { get; set; }
 
     }
 }
