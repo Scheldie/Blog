@@ -3,7 +3,7 @@ using Blog.Models;
 
 namespace Blog.Data.Intefaces
 {
-    public interface IUserRepository
+    public interface IUserRepository : IEntityRepository<User>
     {
         public User GetByEmail(string email);
     }

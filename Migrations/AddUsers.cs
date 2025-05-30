@@ -12,10 +12,9 @@ namespace Blog.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("PostgreSQL:Autoincrement", true),
-                    UserName = table.Column<string>(nullable: false),
-                    Email = table.Column<string>(nullable: true),
-                    Hash = table.Column<string>(nullable: true),
-                    Salt = table.Column<string>(nullable: true)
+                    UserName = table.Column<string>(nullable: true),
+                    Email = table.Column<string>(nullable: false),
+                    Hash = table.Column<string>(nullable: false),
                 },
                 constraints: table =>
                 {

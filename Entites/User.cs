@@ -11,19 +11,8 @@ namespace Blog.Entities
 
         public string PasswordHash { get; set; } 
 
-        public string Salt { get; set; }
-
         public string Email { get; set; } 
 
-
-        public User(int id, string userName, string passwordHash, string salt, string email)
-        {
-            Id = id;
-            UserName = userName;
-            PasswordHash = passwordHash;
-            Salt = salt;
-            Email = email;
-        }
 
     }
 }

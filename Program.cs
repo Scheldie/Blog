@@ -43,7 +43,6 @@ app.UseAuthentication();
 
 var services = builder.Services;
 
-Console.WriteLine(jwtOptions.SecretKey + " hui");
 
 
 // Configure the HTTP request pipeline.

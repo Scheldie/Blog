@@ -13,16 +13,50 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Регистрация</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/nav-home-reg-sign.css" asp-append-version="true" />
 </head>
 <body>
     <div class="container">
         <main role="main" class="pb-3">
             <div class="form-div">
-                <form class="initial-form">
-                    <input asp-for="Email" name="Email" placeholder="Email" class="data-account form-element">
-                    <input asp-for="Password" name="Password" placeholder="Password" class="data-account form-element">
-                    <input asp-for="ConfirmPassword" name="Password" placeholder="Confirm Password" class="data-account form-element">
+                <form class="initial-form" asp-antiforgery="true" method="post" asp-action="SignUp" novalidate="novalidate">
+                    <div class="form-group">
+                        <span class="text-danger">
+                            <div>
+                                @Html.ValidationMessageFor(model => model.UserName)
+                            </div>
+                        </span>
+                        <input asp-for="UserName" name="UserName" placeholder="UserName" class="data-account form-element">
+                        <span class="invalid-feedback" asp-validation-for="UserName"></span>
+                    </div>
+                    <div class="form-group">
+                        <span class="text-danger">
+                            <div>
+                                @Html.ValidationMessageFor(model => model.Email)
+                            </div>
+                        </span>
+                        <input asp-for="Email" name="Email" placeholder="Email" class="data-account form-element">
+                        <span class="invalid-feedback" asp-validation-for="Email"></span>
+                    </div>
+                    <div class="form-group">
+                        <span class="text-danger">
+                            <div>
+                                @Html.ValidationMessageFor(model => model.Password)
+                            </div>
+                        </span>
+                        <input asp-for="Password" name="Password" placeholder="Password" class="data-account form-element">
+                        <span class="invalid-feedback" asp-validation-for="Password"></span>
+                    </div>
+                    <div class="form-group">
+                        <span class="text-danger">
+                            <div>
+                                @Html.ValidationMessageFor(model => model.ConfirmPassword)
+                            </div>
+                        </span>
+                        <input asp-for="ConfirmPassword" placeholder="Confirm Password" class="data-account form-element">
+                        <span class="invalid-feedback" asp-validation-for="ConfirmPassword"></span>
+                    </div>
                     <a asp-area="" asp-controller="Authorization" asp-action="LogIn"><button class="button registration-button form-element"><span class="registration-button-title">SignUp</span></button></a><br>
                 </form>
             </div>
