@@ -27,5 +27,7 @@ namespace Blog.Entities
         public virtual IEnumerable<Image> Images { get; set; }
 
         public virtual IEnumerable<Like> Likes { get; set; }
+
+        public int ViewCount { get; set; }
     }
 }
