@@ -21,15 +21,16 @@ namespace Blog.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("PostgreSQL:Autoincrement", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     EntityId = table.Column<int>(nullable: false),
                     UserId = table.Column<int>(nullable: false),
-                    LikeType = table.Column<int>(nullable: true)
+                    LikeType = table.Column<int>(nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()")
 
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Posts", x => x.Id);
+                    table.PrimaryKey("PK_Likes", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Likes_Users_UserId",
                         column: x => x.UserId,

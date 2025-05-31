@@ -17,31 +17,31 @@ using Blog.Data.Repositories;
 using Blog.Data;
 using Blog.Services;
 
-var builder = WebApplication.CreateBuilder();
+var modelBuilder = WebApplication.CreateBuilder();
 
 var optionsBuilder = new DbContextOptionsBuilder<BlogDbContext>();
 
-builder.Services.AddControllersWithViews();
-builder.Services.AddDbContext<BlogDbContext>
+modelBuilder.Services.AddControllersWithViews();
+modelBuilder.Services.AddDbContext<BlogDbContext>
                             (optionsAction: options =>
                                 options.UseLazyLoadingProxies()
-                                .UseNpgsql((builder.Configuration
+                                .UseNpgsql((modelBuilder.Configuration
                                 .GetConnectionString("DefaultConnection"))));
 
 
 var jwtOptions =
-    builder.Configuration.GetSection(JwtOptions.JwtConfig)
+    modelBuilder.Configuration.GetSection(JwtOptions.JwtConfig)
         .Get<JwtOptions>();
-ApiExtension.AddApiAuthentification(builder.Services, jwtOptions);
+ApiExtension.AddApiAuthentification(modelBuilder.Services, jwtOptions);
 
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+modelBuilder.Services.AddScoped<IUserRepository, UserRepository>();
 
-var app = builder.Build();
+var app = modelBuilder.Build();
 
 app.UseAuthentication();
 
 
-var services = builder.Services;
+var services = modelBuilder.Services;
 
 
 

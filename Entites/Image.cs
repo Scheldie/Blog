@@ -14,5 +14,7 @@ namespace Blog.Entites
 
         public string Path { get; set; }
 
+        public DateTime CreatedAt { get; set; }
+
     }
 }

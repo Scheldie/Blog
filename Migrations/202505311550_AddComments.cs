@@ -13,13 +13,14 @@ namespace Blog.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("PostgreSQL:Autoincrement", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<int>(nullable: false),
                     Text = table.Column<string>(nullable: false, maxLength: 1200),
                     PostId = table.Column<int>(nullable: false),
                     ParentId = table.Column<int>(nullable: true),
-                    CreatedAt = table.Column<DateTime>(nullable: false, type: "datetime2"),
-                    UpdatedAt = table.Column<DateTime>(nullable: false, type: "datetime2")
+                    CreatedAt = table.Column<DateTime>(nullable: false, type: "timestamp with time zone", defaultValueSql: "NOW()"),
+                    UpdatedAt = table.Column<DateTime>(nullable: false, type: "timestamp with time zone", defaultValueSql: "NOW()"),
+                    LikesCount = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -38,13 +39,6 @@ namespace Blog.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade // Удаляет все комментарии из поста при удалении поста
                     );
-                    //table.ForeignKey(
-                    //    name: "FK_Comments_Comments_ParentId",
-                    //    column: x => x.ParentId,
-                    //    principalTable: "Comments",
-                    //    principalColumn: "Id",
-                    //    onDelete: ReferentialAction.Cascade // Удаляет все ответы на родительский комментарий
-                    //);
                 }
             );
             migrationBuilder.CreateIndex(

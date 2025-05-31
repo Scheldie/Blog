@@ -19,13 +19,14 @@ namespace Blog.Entities
 
         public DateTime LastUpdatedAt { get; set; }
 
-        public DateTime LastLoginedAt { get; set; }
+        public DateTime LastLoginAt { get; set; }
 
         public int? ImageId { get; set; }
 
         public virtual Image Avatar { get; set; } 
 
         public virtual IEnumerable<Post> Posts { get; set; }
+        public virtual IEnumerable<Comment> Comments { get; set; }
 
     }
 }
