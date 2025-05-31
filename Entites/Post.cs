@@ -1,5 +1,4 @@
-﻿using Blog.Data.Intefaces;
-using Blog.Models;
+﻿using Blog.Models;
 using Blog.Entites;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 

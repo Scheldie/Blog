@@ -2,7 +2,7 @@
 {
     public enum LikeType
     {
-        Comment, 
-        Post
+        Comment = 1, 
+        Post = 0
     }
 }

@@ -1,5 +1,4 @@
-﻿using Blog.Data.Intefaces;
-using Blog.Entites;
+﻿using Blog.Entites;
 using Blog.Models;
 
 namespace Blog.Entities
@@ -21,6 +20,8 @@ namespace Blog.Entities
         public DateTime LastUpdatedAt { get; set; }
 
         public DateTime LastLoginedAt { get; set; }
+
+        public int? ImageId { get; set; }
 
         public virtual Image Avatar { get; set; } 
 

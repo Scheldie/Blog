@@ -1,9 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Blog.Data.Intefaces;
 
 namespace Blog.Data.Repositories
 {
-    public abstract class EntityRepository<IEntity> where IEntity : class, Intefaces.IEntity
+    public abstract class EntityRepository<IEntity> where IEntity : class, Entites.IEntity
     {
         private protected readonly BlogDbContext DbContext;
 

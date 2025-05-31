@@ -1,5 +1,4 @@
-﻿using Blog.Data.Intefaces;
-using Blog.Entities;
+﻿using Blog.Entities;
 
 namespace Blog.Entites
 {
