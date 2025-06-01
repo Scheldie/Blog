@@ -21,6 +21,8 @@ var builder = WebApplication.CreateBuilder();
 
 var optionsBuilder = new DbContextOptionsBuilder<BlogDbContext>();
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<BlogDbContext>
                             (optionsAction: options =>
@@ -30,17 +32,19 @@ builder.Services.AddDbContext<BlogDbContext>
 
 
 var jwtOptions = builder.Configuration.GetSection("JwtConfig").Get<JwtOptions>();
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options => {
-        options.Cookie.Name = "AuthCookie";
-        options.LoginPath = "/Authorization/Login";
-        options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Events.OnRedirectToLogin = context =>
-        {
-            context.Response.StatusCode = 401; 
-            return Task.CompletedTask;
-        };
-    });
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
+.AddCookie(options =>
+{
+    options.LoginPath = "/Authorization/Login";
+    options.AccessDeniedPath = "/Home/AccessDenied";
+    options.ExpireTimeSpan = TimeSpan.FromDays(7);
+    options.Cookie.HttpOnly = true;
+    options.SlidingExpiration = true;   
+});
 
 builder.Services.AddAuthorization();
 
@@ -52,24 +56,23 @@ var services = builder.Services;
 
 
 
-// Configure the HTTP request pipeline.
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
-//services.AddScoped<IUserRepository, UserRepository>();
-//services.AddScoped<UserService>();
-//services.AddScoped<IJwtProvider, JwtProvider>();
-//services.AddScoped<IPasswordHasher, PasswordHasher>();
-
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseCookiePolicy(new CookiePolicyOptions
+{
+    MinimumSameSitePolicy = SameSiteMode.Lax,
+    Secure = CookieSecurePolicy.SameAsRequest
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -88,6 +91,21 @@ app.Use(async (context, next) =>
     var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
     logger.LogDebug("Request path: {Path}", context.Request.Path);
     await next();
+});
+
+app.Use(async (context, next) => {
+    try
+    {
+        await next();
+    }
+    catch (System.IO.IOException ex) when
+        (ex.InnerException is System.Net.Sockets.SocketException)
+    {
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning("Socket exception handled: {Message}", ex.Message);
+        context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+        await context.Response.WriteAsync("Service temporarily unavailable");
+    }
 });
 
 app.Run();

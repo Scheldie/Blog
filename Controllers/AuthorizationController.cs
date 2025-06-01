@@ -47,30 +47,49 @@ namespace Blog.Controllers
         }
         [HttpPost]
         [Route("login")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginModel loginModel)
         {
-            var user = _userRepository.GetByEmail(loginModel.Email);
-            if (user == null)
+            try
             {
-                ModelState.AddModelError("Email", "User with this email does not exist.");
-                return View(loginModel);
-            }
+                var user = _userRepository.GetByEmail(loginModel.Email);
+                var hasher = new PasswordHasher();
+                if (user == null || !hasher.Verify(loginModel.Password, user.PasswordHash))
+                {
+                    ModelState.AddModelError("", "Invalid credentials");
+                    return View(loginModel);
+                }
 
-            var hasher = new PasswordHasher();
-            if (!hasher.Verify(loginModel.Password, user.PasswordHash))
+                user.LastLoginAt = DateTime.UtcNow;
+                _userRepository.UpdateEntity(user);
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.Email),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Role, "User") 
+                };
+
+                var identity = new ClaimsIdentity(
+                    claims,
+                    CookieAuthenticationDefaults.AuthenticationScheme);
+
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    principal,
+                    new AuthenticationProperties
+                    {
+                        IsPersistent = true,
+                        ExpiresUtc = DateTime.UtcNow.AddDays(7)
+                    });
+
+                return RedirectToAction("Profile", "Profile");
+            }
+            catch (Exception ex)
             {
-                ModelState.AddModelError("Password", "Please enter correct password.");
-                return View(loginModel);
+                _logger.LogError(ex, "Login failed");
+                return StatusCode(500, "Internal server error");
             }
-
-            user.LastLoginAt = DateTime.UtcNow;
-            _userRepository.UpdateEntity(user);
-            _userRepository.Save(); // Не забываем сохранить изменения
-
-            await Authenticate(user.Email); // Передаем user.Email вместо loginModel.Email
-
-            return RedirectToAction("Index", "Profile");
         }
 
         

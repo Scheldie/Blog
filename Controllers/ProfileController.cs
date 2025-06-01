@@ -30,7 +30,7 @@ namespace Blog.Controllers
             _userRepository = userRepository;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Profile()
         {
             if (!User.Identity.IsAuthenticated)
                 return Challenge(); // Вернет 401
