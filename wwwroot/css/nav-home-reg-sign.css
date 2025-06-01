@@ -1,0 +1,142 @@
+ul{
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.logo{
+    width: 110px;
+    height: 55px;
+    margin: 0;
+    padding: 0;
+}
+.header{
+    display: flex;
+    padding: 22px 52px;
+    border-bottom: 2px solid #d9d9d9;
+}
+.header-item:nth-child(2){
+    margin-left: auto;
+    margin-right: 15px;
+}
+.registration-button{
+    background-color: #2c2c2c;
+    color: #f5f5f5;
+}
+.button{
+    border-radius: 8px;
+}
+.form-div{
+    width: 100%;
+}
+.initial-form{
+    padding-right: 60px;
+    padding-left: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 100px;
+    width: 25%;
+    height: 50%;
+    min-height: 400px;
+    border: 2px solid #d9d9d9;
+    border-radius: 10px;
+    
+}
+input{
+    border: 2px solid #d9d9d9;
+    border-radius: 10px;
+}
+input[placeholder]{
+    padding-left: 20px;
+}
+.form-element{
+    height: 44px;
+    padding: 0;
+    margin: 0;
+    margin-top: 10px;
+    margin-left: 10px;
+}
+.form-element-forgot{
+    margin-left: 10px;
+    color: #000;
+}
+.form-element-title{
+    display: inline-block;
+    margin-left: 10px;
+}
+.form-element-title:nth-child(1){
+    margin-top: 20px;
+    margin-left: 10px;
+}
+.initial-form .registration-button{
+    width: calc(100% + 20px); 
+    font-size: 15px;
+}
+
+
+.data-account{
+    width: 100%;
+    font-size: 21px;
+}
+.reset-button{
+    background-color: #2c2c2c;
+    color: #f5f5f5;
+}
+.index-title {
+    margin: 0;
+    padding: 0;
+    font: 1em sans-serif;
+    font-size: 40px;
+    margin-bottom: 30px;
+}
+
+.index-subtitle {
+    margin: 0;
+    padding: 0;
+    font: 1em sans-serif;
+    font-size: 30px;
+    margin-bottom: 30px;
+}
+
+.index-form-div {
+    width: 100%;
+    display: block;
+}
+
+.index-form {
+    width: 40%;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 100px;
+    border: 2px solid #d9d9d9;
+    border-radius: 20px;
+    padding: 50px 0px;
+}
+
+.Register-or-sign-buttons {
+    display: flex;
+}
+
+.index-form .sign-button {
+    margin-right: 10px;
+}
+.buttons-div {
+    margin: 0;
+    padding: 0;
+    align-content: space-between;
+}
+
+    .buttons-div .forgotten-reset-button {
+        background-color: #2c2c2c;
+        color: #f5f5f5;
+        width: calc(100% + 20px);
+        font-size: 15px;
+    }
+
+    .buttons-div .forgotten-cancel-button {
+        width: calc(100% + 20px);
+        font-size: 15px;
+    }

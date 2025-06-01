@@ -1,0 +1,50 @@
+﻿@{
+    ViewData["Title"] = "Sign in page";
+}
+@model Blog.Models.Account.LoginModel
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<!Doctype html>
+<html lang="Russian">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Вход</title>
+    <link rel="stylesheet" href="~/css/nav-home-reg-sign.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="container">
+        <main role="main" class="pb-3">
+            <div class="form-div">
+                <form class="initial-form" method="post" asp-antiforgery="true" asp-controller="Authorization" asp-action="Login" novalidate="novalidate">
+                    <div class="form-group">
+                        <span class="text-danger">
+                            <div>
+                                @Html.ValidationMessageFor(model => model.Email)
+                            </div>
+                        </span>
+                        <input name="Email" placeholder="Email" class="data-account form-element" asp-for="Email">
+                        <span class="invalid-feedback" asp-validation-for="Password"></span>
+                    </div>
+                    <div class="form-group">
+                        <span class="text-danger">
+                            <div>
+                                @Html.ValidationMessageFor(model => model.Password)
+                            </div>
+                        </span>
+                        <input name="Password" placeholder="Password" class="data-account form-element" asp-validation-for="Password">
+                        <span class="invalid-feedback" asp-validation-for="Password"></span>
+                    </div>
+
+                    
+                    <a asp-area="" asp-controller="Profile" asp-action="Index"><button class="button registration-button form-element"><span class="registration-button-title">Log in</span></button></a><br>
+                    <a asp-area="" asp-controller="Authorization" asp-action="Forgotten" class="form-element-forgot"><u>forgot your password?</a>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
