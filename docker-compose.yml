@@ -1,7 +1,7 @@
 services:
   postgres1:
     image: postgis/postgis:latest
-    container_name: postgres1_container
+    container_name: postgres_container
     environment:
       PGUSER: postgres
       POSTGRES_PASSWORD: 123Admin456!

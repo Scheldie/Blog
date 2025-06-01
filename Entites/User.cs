@@ -13,7 +13,7 @@ namespace Blog.Entities
 
         public string Email { get; set; } 
 
-        public string Bio { get; set; } //о себе
+        public string? Bio { get; set; } //о себе
 
         public DateTime CreatedAt { get; set; }
 
@@ -21,9 +21,9 @@ namespace Blog.Entities
 
         public DateTime LastLoginAt { get; set; }
 
-        public int? ImageId { get; set; }
-
         public virtual Image Avatar { get; set; } 
+
+        public string? AvatarPath { get; set; }
 
         public virtual IEnumerable<Post> Posts { get; set; }
         public virtual IEnumerable<Comment> Comments { get; set; }

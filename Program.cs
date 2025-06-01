@@ -17,31 +17,38 @@ using Blog.Data.Repositories;
 using Blog.Data;
 using Blog.Services;
 
-var modelBuilder = WebApplication.CreateBuilder();
+var builder = WebApplication.CreateBuilder();
 
 var optionsBuilder = new DbContextOptionsBuilder<BlogDbContext>();
 
-modelBuilder.Services.AddControllersWithViews();
-modelBuilder.Services.AddDbContext<BlogDbContext>
+builder.Services.AddControllersWithViews();
+builder.Services.AddDbContext<BlogDbContext>
                             (optionsAction: options =>
                                 options.UseLazyLoadingProxies()
-                                .UseNpgsql((modelBuilder.Configuration
+                                .UseNpgsql((builder.Configuration
                                 .GetConnectionString("DefaultConnection"))));
 
 
-var jwtOptions =
-    modelBuilder.Configuration.GetSection(JwtOptions.JwtConfig)
-        .Get<JwtOptions>();
-ApiExtension.AddApiAuthentification(modelBuilder.Services, jwtOptions);
+var jwtOptions = builder.Configuration.GetSection("JwtConfig").Get<JwtOptions>();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options => {
+        options.Cookie.Name = "AuthCookie";
+        options.LoginPath = "/Authorization/Login";
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Events.OnRedirectToLogin = context =>
+        {
+            context.Response.StatusCode = 401; 
+            return Task.CompletedTask;
+        };
+    });
 
-modelBuilder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddAuthorization();
 
-var app = modelBuilder.Build();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-app.UseAuthentication();
+var app = builder.Build();
 
-
-var services = modelBuilder.Services;
+var services = builder.Services;
 
 
 
@@ -64,11 +71,24 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapControllerRoute(
+    name: "profile",
+    pattern: "Profile/{action=Index}",
+    defaults: new { controller = "Profile" });
+
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+    logger.LogDebug("Request path: {Path}", context.Request.Path);
+    await next();
+});
 
 app.Run();
 

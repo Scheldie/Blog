@@ -249,6 +249,7 @@ C:\Users\user\Desktop\Blog\obj\Debug\net9.0\Blog.csproj.CoreCompileInputs.cache
 C:\Users\user\Desktop\Blog\obj\Debug\net9.0\Blog.MvcApplicationPartsAssemblyInfo.cache
 C:\Users\user\Desktop\Blog\obj\Debug\net9.0\Blog.RazorAssemblyInfo.cache
 C:\Users\user\Desktop\Blog\obj\Debug\net9.0\Blog.RazorAssemblyInfo.cs
+C:\Users\user\Desktop\Blog\obj\Debug\net9.0\Blog.sourcelink.json
 C:\Users\user\Desktop\Blog\obj\Debug\net9.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
 C:\Users\user\Desktop\Blog\obj\Debug\net9.0\scopedcss\bundle\Blog.styles.css
 C:\Users\user\Desktop\Blog\obj\Debug\net9.0\scopedcss\projectbundle\Blog.bundle.scp.css
@@ -333,5 +334,3 @@ C:\Users\user\Desktop\Blog\obj\Debug\net9.0\refint\Blog.dll
 C:\Users\user\Desktop\Blog\obj\Debug\net9.0\Blog.pdb
 C:\Users\user\Desktop\Blog\obj\Debug\net9.0\Blog.genruntimeconfig.cache
 C:\Users\user\Desktop\Blog\obj\Debug\net9.0\ref\Blog.dll
-C:\Users\user\Desktop\Blog\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
-C:\Users\user\Desktop\Blog\obj\Debug\net9.0\Blog.sourcelink.json

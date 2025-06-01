@@ -6,6 +6,7 @@ using Blog.Entities;
 using System.Reflection.Emit;
 using Blog.Entites;
 using Blog.Entites.Enums;
+using Blog.Models.Account;
 
 namespace Blog.Data
 {
@@ -34,6 +35,15 @@ namespace Blog.Data
         public DbSet<Post> Posts { get; set; } = null!;
         public DbSet<PostImages> PostImages { get; set; } = null!;
         public DbSet<Comment> Comments { get; set; } = null!;
+        public DbSet<Notification> Notifications { get; set; } = null!;
+        public DbSet<PostViews> PostViews { get; set; } = null!;
+        public DbSet<Follower> Followers { get; set; } = null!;
+        public DbSet<Blog.Entites.Image> Images { get; set; } = null!;
+        
+
+
+
+
 
 
 

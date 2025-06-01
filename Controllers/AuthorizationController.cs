@@ -11,7 +11,8 @@ using Blog.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Blog.Entities;
 using Blog.Data;
-using Blog.Models;
+using Blog.Models.Account;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Blog.Controllers
 {
@@ -41,18 +42,13 @@ namespace Blog.Controllers
         [Route("login")]
         public IActionResult Login()
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                return RedirectToAction("Profile", "Profile");
-            }
+            
             return View();
         }
         [HttpPost]
         [Route("login")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(
-            LogInModel loginModel
-            )
+        public async Task<IActionResult> Login(LoginModel loginModel)
         {
             var user = _userRepository.GetByEmail(loginModel.Email);
             if (user == null)
@@ -60,17 +56,24 @@ namespace Blog.Controllers
                 ModelState.AddModelError("Email", "User with this email does not exist.");
                 return View(loginModel);
             }
-            
+
             var hasher = new PasswordHasher();
-            if (hasher.Verify(loginModel.Password, user.PasswordHash))
+            if (!hasher.Verify(loginModel.Password, user.PasswordHash))
             {
-                await Authenticate(loginModel.Email);
-                return RedirectToAction("LogIn", "Index");
+                ModelState.AddModelError("Password", "Please enter correct password.");
+                return View(loginModel);
             }
-            ModelState.AddModelError("Password", "Please enter correct password.");
-            return View(loginModel);
-            
+
+            user.LastLoginAt = DateTime.UtcNow;
+            _userRepository.UpdateEntity(user);
+            _userRepository.Save(); // Не забываем сохранить изменения
+
+            await Authenticate(user.Email); // Передаем user.Email вместо loginModel.Email
+
+            return RedirectToAction("Index", "Profile");
         }
+
+        
         [HttpPost]
         [Route("signUp")]
         [ValidateAntiForgeryToken]
@@ -91,28 +94,51 @@ namespace Blog.Controllers
                 {
                     Email = signUpModel.Email,
                     PasswordHash = passwordHash,
-                    UserName = signUpModel.UserName
-                   
+                    UserName = signUpModel.UserName,
+                    AvatarPath = "/default-avatar.png",
+                    CreatedAt = DateTime.UtcNow,
+                    LastUpdatedAt = DateTime.UtcNow
+
                 };
                 _userRepository.AddEntity(user);
                 _userRepository.Save();
                 await Authenticate(signUpModel.Email);
 
-                return RedirectToAction("Index", "LogIn");
+                return RedirectToAction("Index", "Login");
             }
             return View(signUpModel);
         }
-        private async Task Authenticate(string userName)
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Index", "Home");
+        }
+        private async Task Authenticate(string email)
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, userName)
+                new Claim(ClaimTypes.Name, email),
+                new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.NameIdentifier, email)
             };
-            var id = new ClaimsIdentity(claims, "ApplicationCookie",
-                                        ClaimsIdentity.DefaultNameClaimType,
-                                        ClaimsIdentity.DefaultRoleClaimType);
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));
+            var claimsIdentity = new ClaimsIdentity(
+                claims,
+                CookieAuthenticationDefaults.AuthenticationScheme);
+
+            _logger.LogInformation($"Authenticating user: {email}");
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTime.UtcNow.AddDays(7),
+                    AllowRefresh = true
+                });
+            
+            _logger.LogInformation("Authentication completed");
         }
     }
 
