@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using Blog.Data;
-using Blog.Data.Intefaces;
+using Blog.Data.Interfaces;
 using Blog.Data.Repositories;
 using Blog.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -12,10 +12,6 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
-using Blog.Data.Intefaces;
-using Blog.Data.Repositories;
-using Blog.Data;
-using Blog.Services;
 
 var builder = WebApplication.CreateBuilder();
 

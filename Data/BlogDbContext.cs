@@ -4,8 +4,7 @@ using static System.Net.Mime.MediaTypeNames;
 using System.Data.Common;
 using Blog.Entities;
 using System.Reflection.Emit;
-using Blog.Entites;
-using Blog.Entites.Enums;
+using Blog.Entities.Enums;
 using Blog.Models.Account;
 
 namespace Blog.Data
@@ -33,12 +32,13 @@ namespace Blog.Data
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<Like> Likes { get; set; } = null!;
         public DbSet<Post> Posts { get; set; } = null!;
-        public DbSet<PostImages> PostImages { get; set; } = null!;
+        public DbSet<PostImage> PostImages { get; set; } = null!;
         public DbSet<Comment> Comments { get; set; } = null!;
         public DbSet<Notification> Notifications { get; set; } = null!;
-        public DbSet<PostViews> PostViews { get; set; } = null!;
+        public DbSet<PostView> PostViews { get; set; } = null!;
         public DbSet<Follower> Followers { get; set; } = null!;
-        public DbSet<Blog.Entites.Image> Images { get; set; } = null!;
+        public DbSet<Blog.Entities.Image> Images { get; set; } = null!;
+
         
 
 

@@ -1,4 +1,4 @@
-﻿using Blog.Entites.Enums;
+﻿using Blog.Entities.Enums;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 

@@ -5,7 +5,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Builder.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Blog.Data.Intefaces;
+using Blog.Data.Interfaces;
 using Blog.Data.Repositories;
 using Blog.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -83,7 +83,7 @@ namespace Blog.Controllers
                         ExpiresUtc = DateTime.UtcNow.AddDays(7)
                     });
 
-                return RedirectToAction("Profile", "Profile");
+                return RedirectToAction("Users", "Profile");
             }
             catch (Exception ex)
             {

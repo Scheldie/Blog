@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Blog.Models.Post;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Blog.Models.Account
@@ -27,6 +28,12 @@ namespace Blog.Models.Account
         [Display(Name = "Avatar")]
         public IFormFile AvatarFile { get; set; }
 
-        public string AvatarUrl { get; set; }
+        public string AvatarPath { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public bool IsCurrentUser {  get; set; }
+
+        public virtual IEnumerable<PostModel> Posts { get; set; }
     }
 }

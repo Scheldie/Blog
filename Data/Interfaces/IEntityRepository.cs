@@ -1,6 +1,6 @@
-﻿using Blog.Entites;
+﻿using Blog.Entities;
 
-namespace Blog.Data.Intefaces
+namespace Blog.Data.Interfaces
 {
     public interface IEntityRepository<TEntity> : IDisposable
         where TEntity : IEntity

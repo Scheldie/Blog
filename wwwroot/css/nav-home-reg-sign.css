@@ -140,3 +140,6 @@ input[placeholder]{
         width: calc(100% + 20px);
         font-size: 15px;
     }
+.text-danger {
+    color: red;
+}

@@ -21,9 +21,9 @@
             <div class="col-md-4">
                 <div class="card shadow-sm">
                     <div class="card-body text-center">
-                        @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                        @if (!string.IsNullOrEmpty(Model.AvatarPath))
                         {
-                            <img src="@Model.AvatarUrl" class="rounded-circle mb-3" width="150" height="150" alt="Profile Image">
+                            <img src="@Model.AvatarPath" class="rounded-circle mb-3" width="150" height="150" alt="Profile Image">
                         }
                         else
                         {

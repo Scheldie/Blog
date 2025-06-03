@@ -27,7 +27,7 @@
                             </div>
                         </span>
                         <input name="Email" placeholder="Email" class="data-account form-element" asp-for="Email">
-                        <span class="invalid-feedback" asp-validation-for="Password"></span>
+
                     </div>
                     <div class="form-group">
                         <span class="text-danger">
@@ -35,8 +35,8 @@
                                 @Html.ValidationMessageFor(model => model.Password)
                             </div>
                         </span>
-                        <input name="Password" placeholder="Password" class="data-account form-element" asp-validation-for="Password">
-                        <span class="invalid-feedback" asp-validation-for="Password"></span>
+                        <input name="Password" placeholder="Password" class="data-account form-element" asp-for="Password">
+
                     </div>
 
                     

@@ -1,7 +1,7 @@
 ﻿using Blog.Entities;
 using Blog.Models;
 
-namespace Blog.Data.Intefaces
+namespace Blog.Services
 {
     public interface IJwtProvider
     {

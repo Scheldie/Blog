@@ -2,7 +2,7 @@
 
 namespace Blog.Data.Repositories
 {
-    public abstract class EntityRepository<IEntity> where IEntity : class, Entites.IEntity
+    public abstract class EntityRepository<IEntity> where IEntity : class, Entities.IEntity
     {
         private protected readonly BlogDbContext DbContext;
 

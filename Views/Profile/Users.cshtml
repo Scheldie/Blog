@@ -1,0 +1,240 @@
+﻿@model Blog.Models.Account.ProfileModel
+
+@{
+    ViewData["Title"] = "Профиль";
+}
+
+<!Doctype html>
+<html lang="Russian">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="index-header">
+            <ul class="header">
+                <li><a asp-controller="Home" asp-action="Index"><img src="~/img/blog.png" class="logo"></a></li>
+                <li class="profile-icon-li"><a asp-controller="Profile" asp-action="Users" asp-route-userId="@Model.Id"><img src="~/img/profile.png" class="profile-icon"></a></li>
+                <li class="log-out-li"><a asp-controller="Account" asp-action="Logout"><img src="~/img/Log out.png" class="log-out-icon"></a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section>
+        <div class="profile-container">
+            <div class="profile-info">
+                <img src="@(Model.AvatarPath ?? "~/img/Image.png")" class="profile-avatar">
+                <ul class="profile-info-list">
+                    <li class="profile-name">@Model.UserName</li>
+                    <li class="profile-status">@(Model.IsActive ? "В сети" : "Не в сети")</li>
+                    @if (Model.IsCurrentUser)
+                    {
+                        <li class="profile-editing">
+                            <button id="editProfileBtn">Редактировать профиль</button>
+                        </li>
+                    }
+                    <li class="profile-about">
+                        @(Model.Bio ?? "Здесь размещается информация о пользователе.")
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Попап редактирования профиля -->
+            @if (Model.IsCurrentUser)
+            {
+                <div id="editProfilePopup" class="popup">
+                    <div class="popup-content">
+                        <span class="close-btn">&times;</span>
+                        <h2>Редактировать профиль</h2>
+                        <form id="editProfileForm" enctype="multipart/form-data">
+                            <div class="form-group avatar-group">
+                                <label for="avatar">Аватар:</label>
+                                <div class="avatar-upload">
+                                    <img id="avatarPreview" src="@(Model.AvatarPath ?? "~/img/Image.png")" alt="Текущий аватар" class="current-avatar">
+                                    <div class="upload-controls">
+                                        <label for="avatar" class="upload-btn">Выбрать файл</label>
+                                        <input type="file" id="avatar" name="avatar" accept="image/*">
+                                        <span class="file-name">Файл не выбран</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="firstName">Имя:</label>
+                                <input type="text" id="firstName" name="firstName" value="@Model.UserName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="about">Информация о себе:</label>
+                                <textarea id="about" name="about" rows="4">@Model.Bio</textarea>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="cancel-btn">Отмена</button>
+                                <button type="submit" class="save-btn">Сохранить изменения</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    @if (Model.IsCurrentUser)
+    {
+        <section>
+            <button id="add-publication-button" data-popup-target="add-publication-popup">
+                <img src="~/img/Plus.png" class="create-publication-icon">
+                <p id="create-publication-title">Добавить пост</p>
+            </button>
+
+            <!-- Попап для добавления поста -->
+            <div id="add-publication-popup" class="popup-overlay">
+                <div class="popup-content">
+                    <span class="close-btn-add">&times;</span>
+                    <h2>Добавить пост</h2>
+                    <form id="add-publication-form" enctype="multipart/form-data">
+                        <label>Изображения (макс. 4):</label>
+                        <div class="images-preview" id="images-preview"></div>
+                        <input type="file" id="image" name="images" multiple accept="image/*">
+                        <label>Заголовок:</label>
+                        <input type="text" id="add-publication-title" name="title" required>
+                        <label>Описание:</label>
+                        <textarea id="add-publication-description" name="description" required></textarea><br><br>
+
+                        <button type="submit" id="submit-add">Опубликовать</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    }
+
+    <section>
+        <!-- Карусель с постами пользователя -->
+        @if (Model.Posts != null && Model.Posts.Any())
+        {
+            <div class="carousel">
+                <div class="carousel-container">
+                    @foreach (var post in Model.Posts)
+                    {
+                        @foreach (var image in post.Images.Take(1))
+                        {
+                            <img src="@image.Path" alt="Пост @post.Id" class="carousel-image" data-post-id="@post.Id">
+                        }
+                    }
+                </div>
+                <button class="carousel-button prev" onclick="moveLeft()">&#10094;</button>
+                <button class="carousel-button next" onclick="moveRight()">&#10095;</button>
+            </div>
+        }
+    </section>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            <div class="publication-container" id="posts-container">
+                @foreach (var post in Model.Posts)
+                {
+                    <div class="publication" data-post-id="@post.Id">
+                        <div class="publication-header">
+                            <img src="@(Model.AvatarPath ?? "~/img/profile.png")" class="publication-avatar">
+                            <div class="publication-user-info">
+                                <p class="publication-user-name">@Model.UserName</p>
+                                <p class="publication-time">@post.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
+                            </div>
+                            @if (Model.IsCurrentUser)
+                            {
+                                <button class="publication-edit-btn" data-post-id="@post.Id">⋮</button>
+                            }
+                        </div>
+
+                        <div class="publication-content">
+                            <p class="publication-text">@post.Description</p>
+                            <div class="publication-images">
+                                @foreach (var image in post.Images)
+                                {
+                                    <img src="@image.Path" alt="Изображение поста" class="publication-image">
+                                }
+                            </div>
+                        </div>
+
+                        <div class="publication-footer">
+                            <button class="like-btn" data-post-id="@post.Id">
+                                <img src="~/img/@(post.Likes.Any(l => l.UserId == Model.Id) ? "Heart Active.png" : "Heart.png")" class="like-icon">
+                                <span class="like-count">@post.Likes.Count()</span>
+                            </button>
+                            <button class="comment-btn">
+                                <img src="~/img/Comment.png" class="comment-icon">
+                                <span class="comment-count">@post.Comments.Count()</span>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (Model.IsCurrentUser)
+            {
+                <!-- Попап редактирования поста -->
+                <div class="edit-popup-overlay" id="edit-popup-overlay">
+                    <div class="edit-popup-content">
+                        <h3>Редактирование публикации</h3>
+                        <div class="edit-form">
+                            <input type="hidden" id="edit-post-id" value="">
+
+                            <label>Описание:</label>
+                            <textarea id="edit-description" class="edit-description"></textarea>
+
+                            <label>Изображения (макс. 4):</label>
+                            <div class="images-preview" id="edit-images-preview"></div>
+                            <input type="file" id="edit-image-input" class="edit-image-input" multiple>
+
+                            <div class="edit-buttons">
+                                <button class="delete-post-btn" id="delete-post-btn">Удалить пост</button>
+                                <div>
+                                    <button type="button" class="cancel-edit">Отмена</button>
+                                    <button type="button" class="save-edit">Сохранить</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Попап галереи -->
+            <div id="galleryPopup" class="popup">
+                <div class="gallery-popup-content">
+                    <span class="close-btn-gallery">&times;</span>
+                    <div class="gallery-container">
+                        <img id="galleryCurrentImage" src="" class="gallery-image">
+                        <div class="gallery-controls">
+                            <button class="gallery-prev">&#10094;</button>
+                            <span id="galleryCounter">1/1</span>
+                            <button class="gallery-next">&#10095;</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    @section Scripts {
+        <script>
+            // Глобальные переменные для использования в JS файлах
+            var currentUserId = '@Model.Id';
+            var isCurrentUser = @Json.Serialize(Model.IsCurrentUser);
+        </script>
+        <script type="module" src="~/js/main.js"></script>
+        <script src="~/js/editProfilePopup.js"></script>
+        <script src="~/js/addPublicationPopup.js"></script>
+        <script src="~/js/postActions.js"></script>
+        <script src="~/js/carousel.js"></script>
+        <script src="~/js/gallery.js"></script>
+
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+    }
+</body>
+</html>

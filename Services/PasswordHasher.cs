@@ -1,6 +1,4 @@
-﻿using Blog.Data.Intefaces;
-
-namespace Blog.Services
+﻿namespace Blog.Services
 {
     public class PasswordHasher : IPasswordHasher
     {

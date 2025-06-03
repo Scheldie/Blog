@@ -17,7 +17,7 @@ namespace Blog.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(nullable: true, maxLength: 200),
+                    Title = table.Column<string>(nullable: true, maxLength: 100),
                     Description = table.Column<string>(nullable: true, maxLength: 1200),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),

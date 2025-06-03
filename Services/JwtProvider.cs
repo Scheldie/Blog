@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Blog.Data.Intefaces;
 using Blog.Entities;
 using Blog.Models;
 using System.IdentityModel.Tokens.Jwt;

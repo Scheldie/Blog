@@ -1,4 +1,4 @@
-﻿namespace Blog.Data.Intefaces
+﻿namespace Blog.Services
 {
     public interface IPasswordHasher
     {
