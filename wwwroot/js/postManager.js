@@ -3,11 +3,31 @@ export function initPostManager(modalManager, imageManager, commentManager, like
     const addPostForm = document.getElementById('add-publication-form');
     const imageInput = document.getElementById('image');
     const descriptionInput = document.getElementById('add-publication-description');
-    
+    const titleInput = document.getElementById('add-publication-title');
+
     let currentEditPost = null;
 
+    async function submitPostToServer(formData) {
+        try {
+            const response = await fetch('/Profile/Users', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при сохранении поста');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка:', error);
+            modalManager.openAlert('Ошибка', 'Не удалось сохранить пост');
+            throw error;
+        }
+    }
+
     function init() {
-        addPostForm.addEventListener('submit', function(e) {
+        addPostForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             const description = descriptionInput.value.trim();
             const title = titleInput.value.trim();
@@ -18,24 +38,41 @@ export function initPostManager(modalManager, imageManager, commentManager, like
                 return;
             }
 
-            createPost(
-                'post-' + Date.now(),
-                new Date().toLocaleDateString(),
-                title,
-                description,
-                images.map(file => ({ src: file, isFile: true }))
-            );
-            document.getElementById('add-publication-popup').classList.remove('active');
-            document.body.style.overflow = '';
-            
-            // Очистка формы
-            addPostForm.reset();
-            imageManager.clearImagesPreview('images-preview');
-            imageManager.clearSelectedImages();
+            // FormData для отправки на сервер
+            const formData = new FormData();
+            formData.append('Description', description);
+            formData.append('Title', title);
 
+            // Добавляем все выбранные изображения
+            images.forEach((file, index) => {
+                formData.append('ImageFile', file);
+            });
+
+            try {
+                // Отправляем данные на сервер
+                const result = await submitPostToServer(formData);
+
+                // Создаем пост на клиенте
+                createPost(
+                    'post-' + result.postId,
+                    new Date().toLocaleDateString(),
+                    title,
+                    description,
+                    images.map(file => ({ src: file, isFile: true }))
+                );
+
+                document.getElementById('add-publication-popup').classList.remove('active');
+                document.body.style.overflow = '';
+
+                // Очистка формы
+                addPostForm.reset();
+                imageManager.clearImagesPreview('images-preview');
+                imageManager.clearSelectedImages();
+            } catch (error) {
+            }
         });
-        
-        imageInput.addEventListener('change', function(e) {
+
+        imageInput.addEventListener('change', function (e) {
             const result = imageManager.handleImageSelection(e);
             if (result.error) {
                 modalManager.openAlert('Ошибка', result.error);
@@ -87,7 +124,7 @@ export function initPostManager(modalManager, imageManager, commentManager, like
         const img = document.createElement('img');
         img.className = 'post-image';
         img.alt = `Изображение ${index + 1}`;
-        img.style.display = 'block'; // Добавлено для корректного отображения
+        img.style.display = 'block'; 
         img.style.margin = '0 auto'; // Центрирование изображения
         
         if (image.isFile) {
@@ -113,7 +150,6 @@ export function initPostManager(modalManager, imageManager, commentManager, like
         
         postsContainer.prepend(postElement);
         setupPostEvents(postElement);
-
         
         return postElement;
     }

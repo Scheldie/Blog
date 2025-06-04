@@ -1,11 +1,11 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     const editPopup = document.getElementById('edit-popup-overlay');
     const cancelBtn = editPopup.querySelector('.cancel-edit');
     const saveBtn = editPopup.querySelector('.save-edit');
     const deleteBtn = editPopup.querySelector('.delete-post-btn');
     const editImageInput = editPopup.querySelector('.edit-image-input');
     const editImagesPreview = editPopup.querySelector('#edit-images-preview');
-
+    
     let currentPostId = null;
     let currentImages = [];
 
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Обработка выбора новых изображений
-    editImageInput.addEventListener('change', function (e) {
+    editImageInput.addEventListener('change', function(e) {
         if (this.files.length + currentImages.length > 4) {
             alert('Можно загрузить не более 4 изображений');
             this.value = '';
@@ -24,33 +24,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
         Array.from(this.files).forEach(file => {
             const reader = new FileReader();
-            reader.onload = function (event) {
+            reader.onload = function(event) {
                 const imgContainer = document.createElement('div');
                 imgContainer.className = 'preview-image';
                 imgContainer.innerHTML = `
                     <img src="${event.target.result}" alt="Preview">
                     <span class="remove-image">&times;</span>
                 `;
-
+                
                 imgContainer.querySelector('.remove-image').addEventListener('click', () => {
                     imgContainer.remove();
                     currentImages = currentImages.filter(img => img !== file);
                 });
-
+                
                 editImagesPreview.appendChild(imgContainer);
                 currentImages.push(file);
             };
             reader.readAsDataURL(file);
         });
-
+        
         this.value = '';
     });
 
     // Сохранение изменений
-    saveBtn.addEventListener('click', async function () {
+    saveBtn.addEventListener('click', async function() {
         const description = editPopup.querySelector('.edit-description').value.trim();
         const title = editPopup.querySelector('.edit-title').value.trim();
-
+        
         if (!title || !description) {
             alert('Пожалуйста, заполните заголовок и описание');
             return;
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('PostId', currentPostId);
         formData.append('Description', description);
         formData.append('Title', title);
-
+        
         for (let i = 0; i < currentImages.length; i++) {
             if (currentImages[i] instanceof File) {
                 formData.append('NewImageFiles', currentImages[i]);
@@ -72,9 +72,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 method: 'POST',
                 body: formData
             });
-
+            
             const data = await response.json();
-
+            
             if (data.success) {
                 // Перезагружаем страницу для отображения изменений
                 location.reload();
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Удаление поста
-    deleteBtn.addEventListener('click', async function () {
+    deleteBtn.addEventListener('click', async function() {
         if (!confirm('Вы уверены, что хотите удалить этот пост?')) {
             return;
         }
@@ -101,9 +101,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 body: JSON.stringify({ postId: parseInt(currentPostId) })
             });
-
+            
             const data = await response.json();
-
+            
             if (data.success) {
                 // Перезагружаем страницу
                 location.reload();
@@ -117,20 +117,20 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Функция для открытия попапа редактирования
-    window.openEditPostPopup = function (postId) {
+    window.openEditPostPopup = function(postId) {
         currentPostId = postId;
         const postElement = document.querySelector(`.publication[data-post-id="${postId}"]`);
-
+        
         // Заполняем данные
-        editPopup.querySelector('.edit-title').value =
+        editPopup.querySelector('.edit-title').value = 
             postElement.querySelector('.publication-title').textContent;
-        editPopup.querySelector('.edit-description').value =
+        editPopup.querySelector('.edit-description').value = 
             postElement.querySelector('.publication-text').textContent;
-
+        
         // Очищаем превью
         editImagesPreview.innerHTML = '';
         currentImages = [];
-
+        
         // Добавляем текущие изображения
         const images = postElement.querySelectorAll('.publication-image');
         images.forEach(img => {
@@ -140,16 +140,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 <img src="${img.src}" alt="Preview">
                 <span class="remove-image">&times;</span>
             `;
-
+            
             imgContainer.querySelector('.remove-image').addEventListener('click', () => {
                 imgContainer.remove();
                 currentImages = currentImages.filter(i => i.src !== img.src);
             });
-
+            
             editImagesPreview.appendChild(imgContainer);
             currentImages.push({ src: img.src });
         });
-
+        
         editPopup.style.display = 'flex';
     };
 });

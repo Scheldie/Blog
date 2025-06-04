@@ -1,8 +1,9 @@
-﻿using Blog.Entities;
+﻿using Blog.Data.Interfaces;
+using Blog.Entities;
 
 namespace Blog.Data.Repositories
 {
-    public class PostRepository : EntityRepository<Post>
+    public class PostRepository : EntityRepository<Post>, IPostRepository
     {
         
         private readonly BlogDbContext _context;

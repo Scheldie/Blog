@@ -15,7 +15,8 @@ namespace Blog.Models.Post
         [Required]
         public string Description { get; set; }
 
-        [NotMapped]
+        [Required]
+        [DataType(DataType.Upload)]
         public IEnumerable<IFormFile> ImageFiles { get; set; }
 
 

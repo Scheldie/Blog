@@ -50,7 +50,8 @@ namespace Blog.Controllers
             {
                 return NotFound();
             }
-
+            user.IsActive = true;
+            user.LastActiveAt = DateTime.UtcNow;
             var posts = await _context.Posts
                 .Where(p => p.UserId == userId)
                 .OrderByDescending(p => p.CreatedAt)

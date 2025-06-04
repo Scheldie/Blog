@@ -45,6 +45,10 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IImageRepository, ImageRepository>();
+builder.Services.AddScoped<IPostImageRepository, PostImageRepository>();
+builder.Services.AddScoped<IPostRepository, PostRepository>();
+
 
 var app = builder.Build();
 
@@ -79,7 +83,7 @@ app.MapControllerRoute(
 
 app.MapControllerRoute(
     name: "profile",
-    pattern: "Profile/{action=Index}",
+    pattern: "Profile/{action=Users}/{id?}",
     defaults: new { controller = "Profile" });
 
 app.Use(async (context, next) =>
