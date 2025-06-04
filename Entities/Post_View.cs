@@ -1,8 +1,8 @@
 ﻿using Blog.Entities;
 
-namespace Blog.Entites
+namespace Blog.Entities
 {
-    public class PostViews : IEntity
+    public class Post_View : IEntity
     {
         public int Id { get; set; } // PostId
         public DateOnly Date { get; set; }

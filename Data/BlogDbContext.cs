@@ -32,10 +32,10 @@ namespace Blog.Data
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<Like> Likes { get; set; } = null!;
         public DbSet<Post> Posts { get; set; } = null!;
-        public DbSet<PostImage> PostImages { get; set; } = null!;
+        public DbSet<Post_Image> Post_Images { get; set; } = null!;
         public DbSet<Comment> Comments { get; set; } = null!;
         public DbSet<Notification> Notifications { get; set; } = null!;
-        public DbSet<PostView> PostViews { get; set; } = null!;
+        public DbSet<Post_View> Post_Views { get; set; } = null!;
         public DbSet<Follower> Followers { get; set; } = null!;
         public DbSet<Blog.Entities.Image> Images { get; set; } = null!;
 

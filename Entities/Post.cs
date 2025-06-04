@@ -22,8 +22,10 @@ namespace Blog.Entities
         public DateTime PublishedAt { get; set; }
 
         public int ImagesCount { get; set; }
+        
+        public virtual IEnumerable<Post_Image> Post_Images { get; set; }
 
-        public virtual IEnumerable<Image> Images { get; set; }
+        public virtual IEnumerable<Post_View> Post_Views { get; set; }
 
         public virtual IEnumerable<Comment> Comments { get; set; }
 

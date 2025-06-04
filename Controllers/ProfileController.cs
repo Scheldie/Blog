@@ -15,6 +15,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Blog.Models.Post;
 using Microsoft.Extensions.Hosting;
+using Blog.Services;
 
 namespace Blog.Controllers
 {
@@ -27,12 +28,22 @@ namespace Blog.Controllers
         private readonly IImageRepository _imageRepository;
         private readonly IPostImageRepository _postImageRepository;
         private readonly IPostRepository _postRepository;
+        private readonly ILogger<ProfileController> _logger;
+        private readonly IFileService _fileService;
 
-        public ProfileController(BlogDbContext context, IWebHostEnvironment env, IUserRepository userRepository)
+        public ProfileController(BlogDbContext context, IWebHostEnvironment env, 
+            IUserRepository userRepository, ILogger<ProfileController> logger,
+            IPostRepository postRepository, IPostImageRepository postImageRepository,
+            IImageRepository imageRepository, IFileService fileService)
         {
             _context = context;
             _env = env;
             _userRepository = userRepository;
+            _logger = logger;
+            _postRepository = postRepository;
+            _imageRepository = imageRepository;
+            _postImageRepository = postImageRepository;
+            _fileService = fileService;
         }
 
         public async Task<IActionResult> Users()
@@ -70,7 +81,7 @@ namespace Blog.Controllers
                     Id = p.Id,
                     Title = p.Title,
                     Description = p.Description,
-                    Images = p.Images,
+                    Post_Images = p.Post_Images,
                     CreatedAt = p.CreatedAt
                 }).ToList()
             };
@@ -133,84 +144,100 @@ namespace Blog.Controllers
             return Ok(new { success = true, avatarPath = user.AvatarPath });
         }
 
-        // POST: Profile/CreatePost
+
         [HttpPost]
-        public async Task<IActionResult> CreatePost([FromForm] PostModel model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreatePost([FromForm] PostCreateModel model)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var userId = 0;
-            if (!Int32.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId))
-            {
-                return Unauthorized();
-            }
-            var user = await _context.Users.FindAsync(userId);
 
-            if (user == null)
-            {
-                return Unauthorized();
-            }
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            var post = new Post
+            try
             {
-                UserId = userId,
-                Description = model.Description,
-                CreatedAt = DateTime.UtcNow,
-                PublishedAt = DateTime.UtcNow,
-                ViewCount = 0,
-                LikesCount = 0,
-                ImagesCount = 0
-            };
-
-            _context.Posts.Add(post);
-            await _context.SaveChangesAsync();
-
-            // Обработка загрузки изображений
-            if (model.ImageFiles != null && model.ImageFiles.Count() > 0)
-            {
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "posts");
-                if (!Directory.Exists(uploadsFolder))
+                // 1. Создаем пост
+                var post = new Post
                 {
-                    Directory.CreateDirectory(uploadsFolder);
+                    UserId = userId,
+                    Title = model.Title,
+                    Description = model.Description,
+                    UpdatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow,
+                    PublishedAt = DateTime.UtcNow,
+                    ViewCount = 0,
+                    LikesCount = 0,
+                    ImagesCount = 0
+                };
+
+                _context.Posts.Add(post);
+                await _context.SaveChangesAsync(); // Сохраняем, чтобы получить ID
+
+                // 2. Обрабатываем изображения
+                if (model.ImageFiles == null || model.ImageFiles.Count == 0)
+                {
+                    return BadRequest("Необходимо загрузить хотя бы одно изображение");
                 }
-                var counter = 0;
-                foreach (var file in model.ImageFiles.Take(4)) // Максимум 4 изображения
+
+                var savedImages = new List<Image>();
+                foreach (var file in model.ImageFiles)
                 {
-                    if (file.Length > 0)
+                    if (file == null || file.Length == 0) continue;
+
+                    // Сохраняем файл
+                    var imagePath = await _fileService.SaveFileAsync(file);
+                    if (string.IsNullOrEmpty(imagePath))
                     {
-                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
-                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await file.CopyToAsync(fileStream);
-                        }
-                        var image = new Image
-                        {
-                            CreatedAt = DateTime.UtcNow,
-                            Path = $"/uploads/posts/{uniqueFileName}",
-                            UserId = userId
-                        };
-                        _context.Images.Add(image);
-                        var postImage = new PostImage
-                        {
-                            PostId = post.Id,
-                            ImageId = _imageRepository.GetByPath(image.Path).Id,
-                            Order = counter++
-                        };
-
-                        _context.PostImages.Add(postImage);
+                        continue; // Пропускаем если не удалось сохранить
                     }
+
+                    var image = new Image
+                    {
+                        Path = imagePath,
+                        CreatedAt = DateTime.UtcNow,
+                        UserId = userId
+                    };
+
+                    _context.Images.Add(image);
+                    await _context.SaveChangesAsync(); // Сохраняем каждое изображение
+
+                    savedImages.Add(image);
                 }
+
+                // 3. Связываем изображения с постом
+                for (int i = 0; i < savedImages.Count; i++)
+                {
+                    _context.Post_Images.Add(new Post_Image
+                    {
+                        PostId = post.Id,
+                        ImageId = savedImages[i].Id,
+                        Order = i
+                    });
+                }
+
+                // 4. Обновляем счетчик изображений
+                post.ImagesCount = savedImages.Count;
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    postId = post.Id,
+                    imagesCount = savedImages.Count
+                });
             }
-            post.ImagesCount = _context.PostImages.Count(p => p.PostId == post.Id);
-            _context.Posts.Update(post);
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new { success = true, postId = post.Id });
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при создании поста");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Внутренняя ошибка сервера",
+                    error = ex.Message
+                });
+            }
         }
 
         // POST: Profile/EditPost
@@ -228,7 +255,7 @@ namespace Blog.Controllers
                 return Unauthorized();
             }
             var post = await _context.Posts
-                .Include(p => p.Images)
+                .Include(p => p.Post_Images)
                 .FirstOrDefaultAsync(p => p.Id == model.PostId && p.UserId == userId);
 
             if (post == null)
@@ -244,15 +271,15 @@ namespace Blog.Controllers
                 // Удаляем старые изображения, если нужно
                 if (model.DeleteExistingImages)
                 {
-                    foreach (var image in post.Images)
+                    foreach (var postImage in post.Post_Images)
                     {
                         
-                        var filePath = Path.Combine(_env.WebRootPath, image.Path.TrimStart('/'));
+                        var filePath = Path.Combine(_env.WebRootPath, postImage.Image.Path.TrimStart('/'));
                         if (System.IO.File.Exists(filePath))
                         {
                             System.IO.File.Delete(filePath);
                         }
-                        _context.PostImages.Remove(_postImageRepository.GetByImageId(image.Id));
+                        _context.Post_Images.Remove(_postImageRepository.GetByImageId(postImage.Image.Id));
                     }
                 }
 
@@ -262,8 +289,8 @@ namespace Blog.Controllers
                 {
                     Directory.CreateDirectory(uploadsFolder);
                 }
-                var counter = post.Images.Count();
-                foreach (var file in model.NewImageFiles.Take(4 - post.Images.Count())) // Максимум 4 изображения
+                var counter = post.Post_Images.Count();
+                foreach (var file in model.NewImageFiles.Take(4 - post.Post_Images.Count())) // Максимум 4 изображения
                 {
                     if (file.Length > 0)
                     {
@@ -282,19 +309,19 @@ namespace Blog.Controllers
                         };
                         _context.Images.Add(image);
                         
-                        var postImage = new PostImage
+                        var postImage = new Post_Image
                         {
                             PostId = post.Id,
                             ImageId = _imageRepository.GetByPath(image.Path).Id,
                             Order = counter++
                         };
 
-                        _context.PostImages.Add(postImage);
+                        _context.Post_Images.Add(postImage);
                     }
                 }
             }
             await _context.SaveChangesAsync();
-            post.ImagesCount = _context.PostImages.Count(p => p.PostId == post.Id);
+            post.ImagesCount = _context.Post_Images.Count(p => p.PostId == post.Id);
             _context.Posts.Update(post);
             await _context.SaveChangesAsync();
 
@@ -311,7 +338,7 @@ namespace Blog.Controllers
                 return Unauthorized();
             }
             var post = await _context.Posts
-                .Include(p => p.Images)
+                .Include(p => p.Post_Images)
                 .Include(p => p.Likes)
                 .Include(p => p.Comments)
                 .FirstOrDefaultAsync(p => p.Id == postId && p.UserId == userId);
@@ -322,9 +349,9 @@ namespace Blog.Controllers
             }
 
             // Удаляем связанные изображения с диска
-            foreach (var image in post.Images)
+            foreach (var postImage in post.Post_Images)
             {
-                var filePath = Path.Combine(_env.WebRootPath, image.Path.TrimStart('/'));
+                var filePath = Path.Combine(_env.WebRootPath, postImage.Image.Path.TrimStart('/'));
                 if (System.IO.File.Exists(filePath))
                 {
                     System.IO.File.Delete(filePath);

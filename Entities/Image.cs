@@ -14,5 +14,7 @@ namespace Blog.Entities
 
         public DateTime CreatedAt { get; set; }
 
+        public virtual IEnumerable<Post_Image> PostImages { get; set; }
+
     }
 }

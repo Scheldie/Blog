@@ -35,5 +35,6 @@ namespace Blog.Models.Account
         public bool IsCurrentUser {  get; set; }
 
         public virtual IEnumerable<PostModel> Posts { get; set; }
+
     }
 }

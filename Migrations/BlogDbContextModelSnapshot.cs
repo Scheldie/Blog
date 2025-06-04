@@ -105,15 +105,10 @@ namespace Blog.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("PostId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PostId");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -208,7 +203,7 @@ namespace Blog.Migrations
                     b.Property<int>("ImagesCount")
                         .HasColumnType("integer");
 
-                    b.Property<int>("LikeCount")
+                    b.Property<int>("LikesCount")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("PublishedAt")
@@ -234,7 +229,7 @@ namespace Blog.Migrations
                     b.ToTable("Posts");
                 });
 
-            modelBuilder.Entity("Blog.Entities.PostImage", b =>
+            modelBuilder.Entity("Blog.Entities.Post_Image", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -257,10 +252,10 @@ namespace Blog.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("PostImages");
+                    b.ToTable("Post_Images");
                 });
 
-            modelBuilder.Entity("Blog.Entities.PostView", b =>
+            modelBuilder.Entity("Blog.Entities.Post_View", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -281,7 +276,7 @@ namespace Blog.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("PostViews");
+                    b.ToTable("Post_Views");
                 });
 
             modelBuilder.Entity("Blog.Entities.User", b =>
@@ -370,10 +365,6 @@ namespace Blog.Migrations
 
             modelBuilder.Entity("Blog.Entities.Image", b =>
                 {
-                    b.HasOne("Blog.Entities.Post", null)
-                        .WithMany("Images")
-                        .HasForeignKey("PostId");
-
                     b.HasOne("Blog.Entities.User", "User")
                         .WithOne("Avatar")
                         .HasForeignKey("Blog.Entities.Image", "UserId")
@@ -420,16 +411,16 @@ namespace Blog.Migrations
                     b.Navigation("Author");
                 });
 
-            modelBuilder.Entity("Blog.Entities.PostImage", b =>
+            modelBuilder.Entity("Blog.Entities.Post_Image", b =>
                 {
                     b.HasOne("Blog.Entities.Image", "Image")
-                        .WithMany()
+                        .WithMany("PostImages")
                         .HasForeignKey("ImageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Blog.Entities.Post", "Post")
-                        .WithMany()
+                        .WithMany("Post_Images")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -439,10 +430,10 @@ namespace Blog.Migrations
                     b.Navigation("Post");
                 });
 
-            modelBuilder.Entity("Blog.Entities.PostView", b =>
+            modelBuilder.Entity("Blog.Entities.Post_View", b =>
                 {
                     b.HasOne("Blog.Entities.Post", "Post")
-                        .WithMany()
+                        .WithMany("Post_Views")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -450,13 +441,20 @@ namespace Blog.Migrations
                     b.Navigation("Post");
                 });
 
+            modelBuilder.Entity("Blog.Entities.Image", b =>
+                {
+                    b.Navigation("PostImages");
+                });
+
             modelBuilder.Entity("Blog.Entities.Post", b =>
                 {
                     b.Navigation("Comments");
 
-                    b.Navigation("Images");
-
                     b.Navigation("Likes");
+
+                    b.Navigation("Post_Images");
+
+                    b.Navigation("Post_Views");
                 });
 
             modelBuilder.Entity("Blog.Entities.User", b =>

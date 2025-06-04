@@ -1,8 +1,10 @@
-﻿@model Blog.Models.Account.ProfileModel
-
-@{
+﻿@{
     ViewData["Title"] = "Профиль";
 }
+@model Blog.Models.Account.ProfileModel
+@{
+}
+
 
 <!Doctype html>
 <html lang="Russian">
@@ -97,6 +99,7 @@
                     <span class="close-btn-add">&times;</span>
                     <h2>Добавить пост</h2>
                     <form id="add-publication-form" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
                         <label>Изображения (макс. 4):</label>
                         <div class="images-preview" id="images-preview"></div>
                         <input type="file" id="image" name="images" multiple accept="image/*">
@@ -120,9 +123,9 @@
                 <div class="carousel-container">
                     @foreach (var post in Model.Posts)
                     {
-                        @foreach (var image in post.Images.Take(1))
+                        @foreach (var postImage in post.Post_Images.Take(1))
                         {
-                            <img src="@image.Path" alt="Пост @post.Id" class="carousel-image" data-post-id="@post.Id">
+                            <img src="@postImage.Image.Path" alt="Пост @post.Id" class="carousel-image" data-post-id="@post.Id">
                         }
                     }
                 </div>
@@ -153,9 +156,15 @@
                         <div class="publication-content">
                             <p class="publication-text">@post.Description</p>
                             <div class="publication-images">
-                                @foreach (var image in post.Images)
+                                @if (post.Post_Images != null)
                                 {
-                                    <img src="@image.Path" alt="Изображение поста" class="publication-image">
+                                    @foreach (var postImage in post.Post_Images)
+                                    {
+                                        @if (postImage != null)
+                                        {
+                                            <img src="@postImage.Image.Path" alt="Изображение поста" class="publication-image">
+                                        }
+                                    }
                                 }
                             </div>
                         </div>

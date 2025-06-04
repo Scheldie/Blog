@@ -2,7 +2,7 @@
 
 namespace Blog.Entities
 {
-    public class PostImage : IEntity
+    public class Post_Image : IEntity
     {
         public int Id { get; set; }
         public int PostId { get; set; }

@@ -9,19 +9,33 @@ export function initPostManager(modalManager, imageManager, commentManager, like
 
     async function submitPostToServer(formData) {
         try {
-            const response = await fetch('/Profile/Users', {
+            // Получаем токен или используем пустую строку для отладки
+            const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+            const token = tokenElement ? tokenElement.value : '';
+
+            const response = await fetch('/Profile/CreatePost', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: {
+                    'RequestVerificationToken': token
+                }
             });
 
             if (!response.ok) {
-                throw new Error('Ошибка при сохранении поста');
+                const errorText = await response.text();
+                throw new Error(`Ошибка сервера: ${response.status} - ${errorText}`);
+            }
+
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                throw new Error(`Ожидался JSON, но получен: ${contentType}. Ответ: ${text}`);
             }
 
             return await response.json();
         } catch (error) {
             console.error('Ошибка:', error);
-            modalManager.openAlert('Ошибка', 'Не удалось сохранить пост');
+            modalManager.openAlert('Ошибка', error.message || 'Не удалось сохранить пост');
             throw error;
         }
     }
@@ -29,6 +43,10 @@ export function initPostManager(modalManager, imageManager, commentManager, like
     function init() {
         addPostForm.addEventListener('submit', async function (e) {
             e.preventDefault();
+            if (!addPostForm || !imageInput || !descriptionInput || !titleInput) {
+                console.error('Не найдены необходимые элементы формы');
+                return;
+            }
             const description = descriptionInput.value.trim();
             const title = titleInput.value.trim();
             const images = imageManager.getSelectedImages();
@@ -45,8 +63,11 @@ export function initPostManager(modalManager, imageManager, commentManager, like
 
             // Добавляем все выбранные изображения
             images.forEach((file, index) => {
-                formData.append('ImageFile', file);
+                formData.append('ImageFiles', file);
             });
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
 
             try {
                 // Отправляем данные на сервер
@@ -87,9 +108,9 @@ export function initPostManager(modalManager, imageManager, commentManager, like
         const postElement = document.createElement('div');
         postElement.className = 'publication';
         postElement.id = id;
-        
+
         const imagesContainerClass = images.length === 1 ? 'single-image' : 'multiple-images';
-        
+
         postElement.innerHTML = `
             <div class="edit-icon-container">
                 <img src="../img/edit-icon.png" class="edit-icon" alt="Редактировать">
@@ -115,59 +136,59 @@ export function initPostManager(modalManager, imageManager, commentManager, like
                 <button class="add-comment">Добавить комментарий</button>
             </div>
         `;
-        
+
         const imagesContainer = postElement.querySelector('.post-images-container');
-    images.forEach((image, index) => {
-        const imgContainer = document.createElement('div');
-        imgContainer.className = 'post-image-item';
-        
-        const img = document.createElement('img');
-        img.className = 'post-image';
-        img.alt = `Изображение ${index + 1}`;
-        img.style.display = 'block'; 
-        img.style.margin = '0 auto'; // Центрирование изображения
-        
-        if (image.isFile) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                img.src = e.target.result;
-                // Добавляем обработчик загрузки изображения
-                img.onload = function() {
+        images.forEach((image, index) => {
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'post-image-item';
+
+            const img = document.createElement('img');
+            img.className = 'post-image';
+            img.alt = `Изображение ${index + 1}`;
+            img.style.display = 'block';
+            img.style.margin = '0 auto'; // Центрирование изображения
+
+            if (image.isFile) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    img.src = e.target.result;
+                    // Добавляем обработчик загрузки изображения
+                    img.onload = function () {
+                        adjustImageContainer(imgContainer, img);
+                    };
+                };
+                reader.readAsDataURL(image.src);
+            } else {
+                img.src = image.src;
+                img.onload = function () {
                     adjustImageContainer(imgContainer, img);
                 };
-            };
-            reader.readAsDataURL(image.src);
-        } else {
-            img.src = image.src;
-            img.onload = function() {
-                adjustImageContainer(imgContainer, img);
-            };
-        }
-        
-        imgContainer.appendChild(img);
-        imagesContainer.appendChild(imgContainer);
-    });
-        
+            }
+
+            imgContainer.appendChild(img);
+            imagesContainer.appendChild(imgContainer);
+        });
+
         postsContainer.prepend(postElement);
         setupPostEvents(postElement);
-        
+
         return postElement;
     }
 
     function adjustImageContainer(container, imgElement) {
-    const containerRatio = container.offsetWidth / container.offsetHeight;
-    const imgRatio = imgElement.naturalWidth / imgElement.naturalHeight;
-    
-    if (imgRatio > containerRatio) {
-        // Широкое изображение
-        imgElement.style.width = '100%';
-        imgElement.style.height = 'auto';
-    } else {
-        // Высокое изображение
-        imgElement.style.width = 'auto';
-        imgElement.style.height = '100%';
+        const containerRatio = container.offsetWidth / container.offsetHeight;
+        const imgRatio = imgElement.naturalWidth / imgElement.naturalHeight;
+
+        if (imgRatio > containerRatio) {
+            // Широкое изображение
+            imgElement.style.width = '100%';
+            imgElement.style.height = 'auto';
+        } else {
+            // Высокое изображение
+            imgElement.style.width = 'auto';
+            imgElement.style.height = '100%';
+        }
     }
-}
 
     function setupPostEvents(postElement) {
         postElement.querySelector('.edit-icon').addEventListener('click', () => {
@@ -175,7 +196,7 @@ export function initPostManager(modalManager, imageManager, commentManager, like
             const postData = getPostData(postElement);
             modalManager.openEditPopup(postData);
         });
-        
+
         commentManager.setupComments(postElement);
         likeManager.setupLikes(postElement);
     }
@@ -184,35 +205,35 @@ export function initPostManager(modalManager, imageManager, commentManager, like
         return {
             title: postElement.querySelector('.publication-title').textContent,
             description: postElement.querySelector('.publication-description').textContent,
-            images: Array.from(postElement.querySelectorAll('.post-image')).map(img => ({ 
-                src: img.src, 
-                isFile: false 
+            images: Array.from(postElement.querySelectorAll('.post-image')).map(img => ({
+                src: img.src,
+                isFile: false
             })),
             onSave: (newData) => {
                 postElement.querySelector('.publication-title').textContent = newData.title;
                 postElement.querySelector('.publication-description').textContent = newData.description;
-                
+
                 const imagesContainer = postElement.querySelector('.post-images-container');
-                const imagesContainerClass = newData.images.length === 1 ? 'single-image' : 
-                                           newData.images.length === 2 ? 'double-image' : 
-                                           'multiple-images';
+                const imagesContainerClass = newData.images.length === 1 ? 'single-image' :
+                    newData.images.length === 2 ? 'double-image' :
+                        'multiple-images';
                 imagesContainer.className = `post-images-container ${imagesContainerClass}`;
                 imagesContainer.innerHTML = '';
-                
+
                 newData.images.forEach((image, index) => {
                     const imgContainer = document.createElement('div');
                     imgContainer.className = 'post-image-item';
-                    
+
                     const img = document.createElement('img');
                     img.className = 'post-image';
                     img.alt = `Изображение ${index + 1}`;
                     img.src = image.src;
-                    
+
                     imgContainer.appendChild(img);
                     imagesContainer.appendChild(imgContainer);
-                    
+
                     if (newData.images.length === 1) {
-                        img.onload = function() {
+                        img.onload = function () {
                             adjustSingleImageSize(img);
                         };
                     }
@@ -225,7 +246,7 @@ export function initPostManager(modalManager, imageManager, commentManager, like
     }
 
     init();
-    
+
     return {
         createPost
     };

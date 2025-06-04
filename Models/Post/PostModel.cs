@@ -28,7 +28,7 @@ namespace Blog.Models.Post
 
         public int ImagesCount { get; set; }
 
-        public virtual IEnumerable<Image> Images { get; set; }
+        public virtual IEnumerable<Post_Image> Post_Images { get; set; }
 
         public virtual IEnumerable<Like> Likes { get; set; }
 

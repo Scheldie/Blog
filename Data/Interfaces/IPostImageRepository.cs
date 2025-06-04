@@ -2,8 +2,8 @@
 
 namespace Blog.Data.Interfaces
 {
-    public interface IPostImageRepository : IEntityRepository<PostImage>
+    public interface IPostImageRepository : IEntityRepository<Post_Image>
     {
-        public PostImage GetByImageId(int id);
+        public Post_Image GetByImageId(int id);
     }
 }
