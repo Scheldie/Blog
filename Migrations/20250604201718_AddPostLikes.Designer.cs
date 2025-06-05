@@ -3,6 +3,7 @@ using System;
 using Blog.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Blog.Migrations
 {
     [DbContext(typeof(BlogDbContext))]
-    partial class BlogDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250604201718_AddPostLikes")]
+    partial class AddPostLikes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,6 +35,9 @@ namespace Blog.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CommentId")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -54,7 +60,7 @@ namespace Blog.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ParentId");
+                    b.HasIndex("CommentId");
 
                     b.HasIndex("PostId");
 
@@ -138,6 +144,9 @@ namespace Blog.Migrations
                     b.Property<int>("LikeType")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("PostId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
@@ -145,9 +154,14 @@ namespace Blog.Migrations
 
                     b.HasIndex("CommentId");
 
+                    b.HasIndex("PostId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Likes");
+
+
+                    
                 });
 
             modelBuilder.Entity("Blog.Entities.Notification", b =>
@@ -257,29 +271,6 @@ namespace Blog.Migrations
                     b.ToTable("Post_Images");
                 });
 
-            modelBuilder.Entity("Blog.Entities.Post_Like", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("LikeId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PostId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LikeId");
-
-                    b.HasIndex("PostId");
-
-                    b.ToTable("Post_Likes");
-                });
-
             modelBuilder.Entity("Blog.Entities.Post_View", b =>
                 {
                     b.Property<int>("Id")
@@ -354,9 +345,7 @@ namespace Blog.Migrations
                 {
                     b.HasOne("Blog.Entities.Comment", "Parent")
                         .WithMany("Comments")
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ParentId");
 
                     b.HasOne("Blog.Entities.Post", "Post")
                         .WithMany("Comments")
@@ -370,9 +359,9 @@ namespace Blog.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Parent");
-
                     b.Navigation("Post");
+
+                    b.Navigation("Parent");
 
                     b.Navigation("User");
                 });
@@ -412,6 +401,10 @@ namespace Blog.Migrations
                     b.HasOne("Blog.Entities.Comment", null)
                         .WithMany("Likes")
                         .HasForeignKey("CommentId");
+
+                    b.HasOne("Blog.Entities.Post", null)
+                        .WithMany("Likes")
+                        .HasForeignKey("PostId");
 
                     b.HasOne("Blog.Entities.User", "User")
                         .WithMany()
@@ -461,25 +454,8 @@ namespace Blog.Migrations
                     b.Navigation("Image");
 
                     b.Navigation("Post");
-                });
 
-            modelBuilder.Entity("Blog.Entities.Post_Like", b =>
-                {
-                    b.HasOne("Blog.Entities.Like", "Like")
-                        .WithMany()
-                        .HasForeignKey("LikeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Blog.Entities.Post", "Post")
-                        .WithMany("Post_Likes")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Like");
-
-                    b.Navigation("Post");
+                    
                 });
 
             modelBuilder.Entity("Blog.Entities.Post_View", b =>
@@ -497,6 +473,8 @@ namespace Blog.Migrations
                 {
                     b.Navigation("Comments");
 
+                    b.Navigation("Parent");
+
                     b.Navigation("Likes");
                 });
 
@@ -509,9 +487,9 @@ namespace Blog.Migrations
                 {
                     b.Navigation("Comments");
 
-                    b.Navigation("Post_Images");
-
                     b.Navigation("Post_Likes");
+
+                    b.Navigation("Post_Images");
 
                     b.Navigation("Post_Views");
                 });

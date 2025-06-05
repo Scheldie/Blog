@@ -3,6 +3,7 @@ using System;
 using Blog.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Blog.Migrations
 {
     [DbContext(typeof(BlogDbContext))]
-    partial class BlogDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250605083723_NavigationsUpdates")]
+    partial class NavigationsUpdates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,6 +35,8 @@ namespace Blog.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -54,7 +59,6 @@ namespace Blog.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ParentId");
 
                     b.HasIndex("PostId");
 
@@ -354,9 +358,7 @@ namespace Blog.Migrations
                 {
                     b.HasOne("Blog.Entities.Comment", "Parent")
                         .WithMany("Comments")
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ParentId");
 
                     b.HasOne("Blog.Entities.Post", "Post")
                         .WithMany("Comments")
@@ -411,7 +413,7 @@ namespace Blog.Migrations
                 {
                     b.HasOne("Blog.Entities.Comment", null)
                         .WithMany("Likes")
-                        .HasForeignKey("CommentId");
+                        .HasForeignKey("ParentId");
 
                     b.HasOne("Blog.Entities.User", "User")
                         .WithMany()
@@ -496,6 +498,8 @@ namespace Blog.Migrations
             modelBuilder.Entity("Blog.Entities.Comment", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("Parent");
 
                     b.Navigation("Likes");
                 });

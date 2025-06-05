@@ -24,15 +24,14 @@ namespace Blog.Models.Post
 
         public DateTime UpdatedAt { get; set; }
 
-        public DateTime PublishedAt { get; set; }
 
         public int ImagesCount { get; set; }
 
         public virtual IEnumerable<Post_Image> Post_Images { get; set; }
 
-        public virtual IEnumerable<Like> Likes { get; set; }
+        public virtual IEnumerable<Post_Like> Post_Likes { get; set; }
 
-        public virtual IEnumerable<Like> Comments { get; set; }
+        public virtual IEnumerable<Comment> Comments { get; set; }
 
         public int ViewCount { get; set; }
     }

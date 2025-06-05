@@ -347,6 +347,7 @@ namespace Blog.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+
                     b.Navigation("Post");
 
                     b.Navigation("User");

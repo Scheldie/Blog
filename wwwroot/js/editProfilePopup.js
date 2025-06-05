@@ -112,11 +112,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const firstName = document.getElementById('firstName').value;
 
-        const lastName = document.getElementById('lastName').value;
 
-        
-
-        profileName.textContent = `${firstName} ${lastName}`;
+        profileName.textContent = `${firstName}`;
 
         profileStatus.textContent = document.getElementById('status').value;
 

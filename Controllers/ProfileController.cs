@@ -64,9 +64,21 @@ namespace Blog.Controllers
             user.IsActive = true;
             user.LastActiveAt = DateTime.UtcNow;
             var posts = await _context.Posts
+                .Include(p => p.Post_Images)
+                .ThenInclude(pi => pi.Image)
+                .Include(pl => pl.Post_Likes)
                 .Where(p => p.UserId == userId)
-                .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
+            var postImages = new List<Post_Image>();
+            foreach (var post in posts)
+            {
+                Console.WriteLine(post.Title + " " + post.Description + " " + post.Author);
+                foreach (var postImage in post.Post_Images)
+                {
+                    Console.WriteLine(postImage.Image.Path);
+                    postImages.Add(postImage);
+                }
+            }
 
             var model = new ProfileModel
             {
@@ -76,13 +88,19 @@ namespace Blog.Controllers
                 Bio = user.Bio,
                 AvatarPath = user.AvatarPath,
                 IsCurrentUser = true,
-                Posts = posts.Select(p => new PostModel
+                Posts = posts.Select(post => new PostModel
                 {
-                    Id = p.Id,
-                    Title = p.Title,
-                    Description = p.Description,
-                    Post_Images = p.Post_Images,
-                    CreatedAt = p.CreatedAt
+                    Id = post.Id,
+                    Title = post.Title,
+                    Description = post.Description,
+                    Post_Images = post.Post_Images,
+                    CreatedAt = post.CreatedAt,
+                    UpdatedAt = post.UpdatedAt,
+                    ImagesCount = post.ImagesCount,
+                    ViewCount = post.ImagesCount,
+                    Comments = post.Comments,
+                    Post_Likes = post.Post_Likes,
+
                 }).ToList()
             };
 
@@ -169,7 +187,9 @@ namespace Blog.Controllers
                     PublishedAt = DateTime.UtcNow,
                     ViewCount = 0,
                     LikesCount = 0,
-                    ImagesCount = 0
+                    ImagesCount = 0,
+                    Comments = new List<Comment>(),
+                    Post_Likes = new List<Post_Like>()
                 };
 
                 _context.Posts.Add(post);
@@ -339,7 +359,7 @@ namespace Blog.Controllers
             }
             var post = await _context.Posts
                 .Include(p => p.Post_Images)
-                .Include(p => p.Likes)
+                .Include(pl => pl.Post_Likes)
                 .Include(p => p.Comments)
                 .FirstOrDefaultAsync(p => p.Id == postId && p.UserId == userId);
 

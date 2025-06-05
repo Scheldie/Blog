@@ -145,39 +145,70 @@
                             <img src="@(Model.AvatarPath ?? "~/img/profile.png")" class="publication-avatar">
                             <div class="publication-user-info">
                                 <p class="publication-user-name">@Model.UserName</p>
-                                <p class="publication-time">@post.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
+                                <p class="publication-date">@post.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
                             </div>
                             @if (Model.IsCurrentUser)
                             {
-                                <button class="publication-edit-btn" data-post-id="@post.Id">⋮</button>
+                                <div class="edit-icon-container">
+                                    <img src="~/img/edit-icon.png" data-post-id="@post.Id" class="edit-icon" alt="Редактировать">
+                                </div>
                             }
                         </div>
 
                         <div class="publication-content">
-                            <p class="publication-text">@post.Description</p>
-                            <div class="publication-images">
-                                @if (post.Post_Images != null)
+                            @if (!string.IsNullOrEmpty(post.Title))
+                            {
+                                <p class="publication-title">@post.Title</p>
+                            }
+
+                            @{
+                                var imageCount = post.Post_Images?.Count() ?? 0;
+                                var containerClass = imageCount switch
                                 {
-                                    @foreach (var postImage in post.Post_Images)
+                                    1 => "post-images-container single-image",
+                                    2 => "post-images-container double-image",
+                                    _ => "post-images-container multiple-image"
+                                };
+                            }
+
+                            <div class="@containerClass">
+                                @if (post.Post_Images?.Any() == true)
+                                {
+                                    @foreach (var postImage in post.Post_Images!)
                                     {
-                                        @if (postImage != null)
+                                        @if (postImage.Image?.Path != null)
                                         {
-                                            <img src="@postImage.Image.Path" alt="Изображение поста" class="publication-image">
+                                            <div class="post-image-item">
+                                                <img src="@Url.Content(postImage.Image.Path)"
+                                                     alt="Изображение поста"
+                                                     class="post-image">
+                                            </div>
                                         }
                                     }
                                 }
                             </div>
+
+                            @if (!string.IsNullOrEmpty(post.Description))
+                            {
+                                <p class="publication-description">@post.Description</p>
+                            }
                         </div>
 
-                        <div class="publication-footer">
-                            <button class="like-btn" data-post-id="@post.Id">
-                                <img src="~/img/@(post.Likes.Any(l => l.UserId == Model.Id) ? "Heart Active.png" : "Heart.png")" class="like-icon">
-                                <span class="like-count">@post.Likes.Count()</span>
-                            </button>
-                            <button class="comment-btn">
-                                <img src="~/img/Comment.png" class="comment-icon">
-                                <span class="comment-count">@post.Comments.Count()</span>
-                            </button>
+                        <div class="post-bottom">
+                            <div class="comments-toggle">
+                                <img src="~/img/Chevron down.png" class="comment-icon">
+                                <span class="comment-count">@(post.Comments?.Count() ?? 0)</span>
+                            </div>
+                            <div class="like-section" data-post-id="@post.Id">
+                                <img src="~/img/@((post.Post_Likes?.Any(l => l.Like.UserId == Model.Id) == true) ? "Heart Active.png" : "Heart.png")" class="like-icon">
+                                <span class="like-count">@(post.Post_Likes?.Count() ?? 0)</span>
+                            </div>
+                        </div>
+                        <div class="comments-section">
+                            <h3 class="comment-header">Комментарии:</h3>
+                            <div class="comments-list"></div>
+                            <textarea class="comment-area" placeholder="Введите ваш комментарий"></textarea>
+                            <button class="add-comment">Добавить комментарий</button>
                         </div>
                     </div>
                 }
