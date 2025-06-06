@@ -16,7 +16,7 @@ namespace Blog.Entities
         
         public int PostId { get; set; }
 
-        public int ParentId { get; set; }
+        public int? ParentId { get; set; }
 
         public virtual Comment Parent { get; set; }
 
@@ -24,9 +24,9 @@ namespace Blog.Entities
 
         public DateTime UpdatedAt { get; set; }
 
-        public virtual IEnumerable<Like> Likes { get; set; }
+        public virtual IEnumerable<Comment_Like> Comment_Likes { get; set; }
 
-        public virtual IEnumerable<Comment> Comments { get; set; }
+        public virtual IEnumerable<Comment> Replies { get; set; }
 
 
     }

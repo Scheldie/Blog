@@ -10,9 +10,8 @@ namespace Blog.Models.Account
 
         [Display(Name = "Bio")]
         [StringLength(500)]
-        public string Bio { get; set; }
-        public IFormFile AvatarFile { get; set; }
+        public string? Bio { get; set; }
+        public IFormFile? Avatar { get; set; }
 
-        public string AvatarPath { get; set; }
     }
 }

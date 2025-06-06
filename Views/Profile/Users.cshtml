@@ -52,26 +52,27 @@
                         <span class="close-btn">&times;</span>
                         <h2>Редактировать профиль</h2>
                         <form id="editProfileForm" enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
                             <div class="form-group avatar-group">
                                 <label for="avatar">Аватар:</label>
                                 <div class="avatar-upload">
                                     <img id="avatarPreview" src="@(Model.AvatarPath ?? "~/img/Image.png")" alt="Текущий аватар" class="current-avatar">
                                     <div class="upload-controls">
                                         <label for="avatar" class="upload-btn">Выбрать файл</label>
-                                        <input type="file" id="avatar" name="avatar" accept="image/*">
+                                        <input type="file" id="Avatar" name="avatar" accept="image/*">
                                         <span class="file-name">Файл не выбран</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                <label for="firstName">Имя:</label>
-                                <input type="text" id="firstName" name="firstName" value="@Model.UserName" required>
+                                <label for="UserName">Имя:</label>
+                                <input type="text" id="UserName" name="UserName" value="@Model.UserName" required>
                             </div>
 
                             <div class="form-group">
-                                <label for="about">Информация о себе:</label>
-                                <textarea id="about" name="about" rows="4">@Model.Bio</textarea>
+                                <label for="Bio">Информация о себе:</label>
+                                <textarea id="Bio" name="Bio" rows="4">@Model.Bio</textarea>
                             </div>
 
                             <div class="form-actions">
@@ -121,11 +122,11 @@
         {
             <div class="carousel">
                 <div class="carousel-container">
-                    @foreach (var post in Model.Posts)
+                    @foreach (var post in Model.Posts.OrderByDescending(p => p.CreatedAt))
                     {
                         @foreach (var postImage in post.Post_Images.Take(1))
                         {
-                            <img src="@postImage.Image.Path" alt="Пост @post.Id" class="carousel-image" data-post-id="@post.Id">
+                            <img src="@Url.Content(postImage.Image.Path)" alt="Пост @post.Id" class="carousel-image" data-post-id="@post.Id">
                         }
                     }
                 </div>
@@ -134,19 +135,28 @@
             </div>
         }
     </section>
+    <div class="popup-overlay" id="popup-overlay">
+        <div class="popup-content popup-delete-content">
+            <img src="" alt="Увеличенное фото" class="popup-image" id="popup-image">
+            <div class="popup-buttons">
+                <button class="popup-delete-btn">Удалить фото</button>
+                <button class="popup-close-btn">Закрыть</button>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
         <main role="main" class="pb-3">
             <div class="publication-container" id="posts-container">
-                @foreach (var post in Model.Posts)
+                @foreach (var post in Model.Posts.OrderByDescending(p=>p.CreatedAt))
                 {
                     <div class="publication" data-post-id="@post.Id">
                         <div class="publication-header">
-                            <img src="@(Model.AvatarPath ?? "~/img/profile.png")" class="publication-avatar">
                             <div class="publication-user-info">
+                                <img src="@(Model.AvatarPath ?? "~/img/profile.png")" class="publication-avatar">
                                 <p class="publication-user-name">@Model.UserName</p>
-                                <p class="publication-date">@post.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
                             </div>
+                            <p class="publication-date">@post.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
                             @if (Model.IsCurrentUser)
                             {
                                 <div class="edit-icon-container">
@@ -158,7 +168,7 @@
                         <div class="publication-content">
                             @if (!string.IsNullOrEmpty(post.Title))
                             {
-                                <p class="publication-title">@post.Title</p>
+                                <h2 class="publication-title">@post.Title</h2>
                             }
 
                             @{
@@ -180,8 +190,8 @@
                                         {
                                             <div class="post-image-item">
                                                 <img src="@Url.Content(postImage.Image.Path)"
-                                                     alt="Изображение поста"
-                                                     class="post-image">
+                                                alt="Изображение поста"
+                                                class="post-image">
                                             </div>
                                         }
                                     }
@@ -190,13 +200,13 @@
 
                             @if (!string.IsNullOrEmpty(post.Description))
                             {
-                                <p class="publication-description">@post.Description</p>
+                                <h3 class="publication-description">@post.Description</h3>
                             }
                         </div>
 
                         <div class="post-bottom">
                             <div class="comments-toggle">
-                                <img src="~/img/Chevron down.png" class="comment-icon">
+                                <img src="~/img/Chevron down.png" class="toggle-comments">
                                 <span class="comment-count">@(post.Comments?.Count() ?? 0)</span>
                             </div>
                             <div class="like-section" data-post-id="@post.Id">
@@ -206,7 +216,12 @@
                         </div>
                         <div class="comments-section">
                             <h3 class="comment-header">Комментарии:</h3>
-                            <div class="comments-list"></div>
+                            <div class="comments-list">
+                                @foreach (var comment in post.Comments.OrderByDescending(p => p.CreatedAt))
+                                {
+                                    
+                                }
+                            </div>
                             <textarea class="comment-area" placeholder="Введите ваш комментарий"></textarea>
                             <button class="add-comment">Добавить комментарий</button>
                         </div>
@@ -217,24 +232,29 @@
             @if (Model.IsCurrentUser)
             {
                 <!-- Попап редактирования поста -->
-                <div class="edit-popup-overlay" id="edit-popup-overlay">
-                    <div class="edit-popup-content">
-                        <h3>Редактирование публикации</h3>
-                        <div class="edit-form">
-                            <input type="hidden" id="edit-post-id" value="">
+                <div id="edit-popup-container" class="edit-popup-container">
+                    <div class="edit-popup-overlay" id="edit-popup-overlay">
+                        <div class="edit-popup-content" id="edit-popup-content">
+                            <h3>Редактирование публикации</h3>
+                            <div class="edit-form">
+                                <input type="hidden" id="edit-post-id" value="">
 
-                            <label>Описание:</label>
-                            <textarea id="edit-description" class="edit-description"></textarea>
+                                <label>Заголовок:</label>
+                                <input type="text" id="edit-title" class="edit-title">
 
-                            <label>Изображения (макс. 4):</label>
-                            <div class="images-preview" id="edit-images-preview"></div>
-                            <input type="file" id="edit-image-input" class="edit-image-input" multiple>
+                                <label>Описание:</label>
+                                <textarea id="edit-description" class="edit-description"></textarea>
 
-                            <div class="edit-buttons">
-                                <button class="delete-post-btn" id="delete-post-btn">Удалить пост</button>
-                                <div>
-                                    <button type="button" class="cancel-edit">Отмена</button>
-                                    <button type="button" class="save-edit">Сохранить</button>
+                                <label>Изображения (макс. 4):</label>
+                                <div class="images-preview" id="edit-images-preview"></div>
+                                <input type="file" id="edit-image-input" class="edit-image-input" multiple accept="image/*">
+
+                                <div class="edit-buttons">
+                                    <button class="delete-post-btn" id="delete-post-btn">Удалить пост</button>
+                                    <div>
+                                        <button type="button" class="cancel-edit">Отмена</button>
+                                        <button type="button" class="save-edit">Сохранить</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -261,14 +281,12 @@
 
     @section Scripts {
         <script>
-            // Глобальные переменные для использования в JS файлах
             var currentUserId = '@Model.Id';
             var isCurrentUser = @Json.Serialize(Model.IsCurrentUser);
         </script>
         <script type="module" src="~/js/main.js"></script>
         <script src="~/js/editProfilePopup.js"></script>
         <script src="~/js/addPublicationPopup.js"></script>
-
         <script src="~/js/carousel.js"></script>
         <script src="~/js/gallery.js"></script>
 

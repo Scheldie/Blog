@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalManager = initModalManager();
     const imageManager = initImageManager();
     const commentManager = initCommentManager();
+    commentManager.initAllComments();
     const likeManager = initLikeManager();
     
     initPostManager(modalManager, imageManager, commentManager, likeManager);

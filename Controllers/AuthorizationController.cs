@@ -60,6 +60,7 @@ namespace Blog.Controllers
                 }
 
                 user.LastLoginAt = DateTime.UtcNow;
+                user.IsActive = true;
                 _userRepository.UpdateEntity(user);
                 var claims = new List<Claim>
                 {
@@ -153,7 +154,7 @@ namespace Blog.Controllers
                 new AuthenticationProperties
                 {
                     IsPersistent = true,
-                    ExpiresUtc = DateTime.UtcNow.AddDays(7),
+                    ExpiresUtc = DateTime.UtcNow.AddHours(12),
                     AllowRefresh = true
                 });
             

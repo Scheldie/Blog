@@ -116,7 +116,7 @@ namespace Blog.Controllers
                 return BadRequest(ModelState);
             }
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             var user = await _context.Users.FindAsync(userId);
 
             if (user == null)
@@ -128,7 +128,7 @@ namespace Blog.Controllers
             user.Bio = model.Bio;
 
             // Обработка загрузки аватара
-            if (model.AvatarFile != null && model.AvatarFile.Length > 0)
+            if (model.Avatar != null && model.Avatar.Length > 0)
             {
                 var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "avatars");
                 if (!Directory.Exists(uploadsFolder))
@@ -136,12 +136,12 @@ namespace Blog.Controllers
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                var uniqueFileName = Guid.NewGuid().ToString() + "_" + model.AvatarFile.FileName;
+                var uniqueFileName = Guid.NewGuid().ToString() + "_" + model.Avatar.FileName;
                 var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
-                    await model.AvatarFile.CopyToAsync(fileStream);
+                    await model.Avatar.CopyToAsync(fileStream);
                 }
 
                 // Удаляем старый аватар, если он существует
@@ -156,7 +156,7 @@ namespace Blog.Controllers
 
                 user.AvatarPath = $"/uploads/avatars/{uniqueFileName}";
             }
-
+            _context.Update(user);
             await _context.SaveChangesAsync();
 
             return Ok(new { success = true, avatarPath = user.AvatarPath });
@@ -282,11 +282,11 @@ namespace Blog.Controllers
             {
                 return NotFound();
             }
-
+            post.Title = model.Title;
             post.Description = model.Description;
 
             // Обработка новых изображений
-            if (model.NewImageFiles != null && model.NewImageFiles.Count > 0)
+            if (model.NewImageFiles != null && model.NewImageFiles.Count() > 0)
             {
                 // Удаляем старые изображения, если нужно
                 if (model.DeleteExistingImages)
@@ -382,6 +382,61 @@ namespace Blog.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { success = true });
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetComments(int postId)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var comments = await _context.Comments
+                .Where(c => c.PostId == postId && c.ParentId == null)  
+                .Include(c => c.User)
+                .Include(c => c.Comment_Likes)
+                .Include(c => c.Replies)
+                    .ThenInclude(reply => reply.User)
+                .OrderByDescending(c => c.CreatedAt)
+                .Select(c => new CommentModel
+                {
+                    Id = c.Id,
+                    User = c.User,
+                    Text = c.Text,
+                    CreatedAt = c.CreatedAt,
+                    Comment_Likes = c.Comment_Likes,
+                    Replies = c.Replies.Select(r => new CommentModel
+                    {
+                        Id = r.Id,
+                        User = r.User,
+                        Text = r.Text,
+                        CreatedAt = r.CreatedAt,
+                        Comment_Likes = r.Comment_Likes,
+                        ParentId = r.ParentId
+                    }).OrderBy(r => r.CreatedAt),
+                    ParentId = c.ParentId,
+                    IsCurrentUserComment = c.UserId == userId
+                })
+                .ToListAsync();
+
+            return Ok(comments);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddComment([FromBody] CommentModel commentModel)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var comment = new Comment
+            {
+                Text = commentModel.Text,
+                PostId = commentModel.PostId,
+                ParentId = commentModel.ParentId,
+                UserId = userId
+            };
+
+            _context.Comments.Add(comment);
+            await _context.SaveChangesAsync();
+
+            return await GetComments(commentModel.PostId);
         }
 
         // POST: Profile/ToggleLike

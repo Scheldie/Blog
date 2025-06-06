@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (clickedImage) {
             popupImage.src = clickedImage.src;
             popupImage.alt = clickedImage.alt;
-            popupOverlay.classList.add('active'); // Используем класс вместо style.display
+            popupOverlay.classList.add('active'); 
         }
     });
     

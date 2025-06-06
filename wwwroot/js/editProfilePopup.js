@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const editProfileForm = document.getElementById('editProfileForm');
 
-    const avatarInput = document.getElementById('avatar');
+    const avatarInput = document.getElementById('Avatar');
 
     const avatarPreview = document.getElementById('avatarPreview');
 
@@ -99,60 +99,54 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 
-
     // Отправка формы
 
-    editProfileForm.addEventListener('submit', function(e) {
-
+    editProfileForm.addEventListener('submit', async function (e) {
         e.preventDefault();
 
-        
+        try {
+            // Создаём FormData из формы
+            const formData = new FormData(editProfileForm);
 
-        // Обновляем данные профиля
+            // Добавляем токен CSRF
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            formData.append('__RequestVerificationToken', token);
 
-        const firstName = document.getElementById('firstName').value;
+            // Отправляем данные на сервер
+            const response = await fetch('/Profile/EditProfile', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
 
+            if (!response.ok) {
+                throw new Error('Ошибка сервера');
+            }
 
-        profileName.textContent = `${firstName}`;
+            const result = await response.json();
 
-        profileStatus.textContent = document.getElementById('status').value;
+            if (result.success) {
+                // Обновляем UI
+                profileName.textContent = document.getElementById('UserName').value;
+                profileAbout.textContent = document.getElementById('Bio').value;
 
-        profileAbout.textContent = document.getElementById('about').value;
+                if (result.avatarPath) {
+                    profileAvatar.src = result.avatarPath;
+                    avatarPreview.src = result.avatarPath;
+                }
 
-        
+                // Закрываем попап
+                closePopup();
 
-        // Обновляем аватар, если выбран новый
-
-        if (avatarInput.files && avatarInput.files[0]) {
-
-            const reader = new FileReader();
-
-            reader.onload = function(e) {
-
-                profileAvatar.src = e.target.result;
-
-            };
-
-            reader.readAsDataURL(avatarInput.files[0]);
-
+                // Показываем уведомление
+                alert('Изменения сохранены успешно!');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Произошла ошибка при сохранении профиля');
         }
-
-        
-
-        // Здесь можно добавить AJAX-запрос для сохранения на сервере
-
-        
-
-        // Закрываем попап
-
-        closePopup();
-
-        
-
-        // Уведомление об успешном сохранении
-
-        alert('Изменения профиля сохранены!');
-
     });
 
 });

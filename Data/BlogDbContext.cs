@@ -39,6 +39,8 @@ namespace Blog.Data
         public DbSet<Follower> Followers { get; set; } = null!;
         public DbSet<Blog.Entities.Image> Images { get; set; } = null!;
         public DbSet<Post_Like> Post_Likes { get; set; }
+
+        public DbSet<Comment_Like> Comment_Likes { get; set; } 
         
 
 
