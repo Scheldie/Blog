@@ -1485,3 +1485,40 @@ body {
 .publication-description{
     font-weight: 400;
 }
+
+/*<div class="comment" data-id="${comment.id}" >
+<div class="comment-header" >
+<img src="${comment.user.avatarPath || '/default-avatar.png'}"
+alt="${comment.user.userName}" >
+<span class="username" > $ {
+    comment .user.userName
+}
+
+</span >
+<span class="date" > $ {
+    comment .createdAt
+}
+
+</span >
+</div >
+<div class="comment-text" > $ {
+    comment .text
+}
+
+</div >
+<div class="comment-actions" >
+<button class="like-btn" data-likes="${comment.likesCount}" >
+Like (${comment.likesCount})
+</button >
+</div >
+$ {
+    comment .replies ? ` <div class="replies"> $
+
+{
+    renderComments(comment.replies, container)
+}
+
+</div >
+` : ''
+}
+</div >*/

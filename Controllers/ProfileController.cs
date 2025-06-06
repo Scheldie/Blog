@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Blog.Models.Post;
 using Microsoft.Extensions.Hosting;
 using Blog.Services;
+using Microsoft.AspNetCore.Identity;
 
 namespace Blog.Controllers
 {
@@ -386,57 +387,94 @@ namespace Blog.Controllers
         [HttpGet]
         public async Task<IActionResult> GetComments(int postId)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var comments = await _context.Comments
-                .Where(c => c.PostId == postId && c.ParentId == null)  
-                .Include(c => c.User)
-                .Include(c => c.Comment_Likes)
-                .Include(c => c.Replies)
-                    .ThenInclude(reply => reply.User)
-                .OrderByDescending(c => c.CreatedAt)
-                .Select(c => new CommentModel
-                {
-                    Id = c.Id,
-                    User = c.User,
-                    Text = c.Text,
-                    CreatedAt = c.CreatedAt,
-                    Comment_Likes = c.Comment_Likes,
-                    Replies = c.Replies.Select(r => new CommentModel
+            try
+            {
+                var comments = await _context.Comments
+                    .Where(c => c.PostId == postId && c.ParentId == null)
+                    .Include(c => c.User)
+                    .Include(c => c.Comment_Likes)
+                    .Include(c => c.Replies)
+                        .ThenInclude(r => r.User)
+                    .Select(c => new
                     {
-                        Id = r.Id,
-                        User = r.User,
-                        Text = r.Text,
-                        CreatedAt = r.CreatedAt,
-                        Comment_Likes = r.Comment_Likes,
-                        ParentId = r.ParentId
-                    }).OrderBy(r => r.CreatedAt),
-                    ParentId = c.ParentId,
-                    IsCurrentUserComment = c.UserId == userId
-                })
-                .ToListAsync();
+                        c.Id,
+                        User = new
+                        {
+                            c.User.Id,
+                            UserName = c.User.UserName, // Use display name if available
+                            c.User.AvatarPath
+                        },
+                        c.Text,
+                        c.PostId,
+                        c.ParentId,
+                        CreatedAt = c.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
+                        Replies = c.Replies.Select(r => new
+                        {
+                            r.Id,
+                            User = new
+                            {
+                                r.User.Id,
+                                UserName = r.User.UserName,
+                                r.User.AvatarPath
+                            },
+                            r.Text,
+                            r.PostId,
+                            r.ParentId,
+                            CreatedAt = r.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
+                        })
+                    })
+                    .ToListAsync();
 
-            return Ok(comments);
+                return Ok(comments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading comments");
+                return StatusCode(500, new { error = "Failed to load comments. Please try again." });
+            }
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddComment([FromBody] CommentModel commentModel)
+        public async Task<IActionResult> AddComment([FromBody] CommentCreateModel dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var comment = new Comment
+            try
             {
-                Text = commentModel.Text,
-                PostId = commentModel.PostId,
-                ParentId = commentModel.ParentId,
-                UserId = userId
-            };
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null) return Unauthorized();
 
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
+                var comment = new Comment
+                {
+                    Text = dto.Text.Trim(),
+                    PostId = dto.PostId,
+                    ParentId = dto.ParentId,
+                    UserId = user.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
 
-            return await GetComments(commentModel.PostId);
+                _context.Comments.Add(comment);
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    comment.Id,
+                    User = new
+                    {
+                        user.Id,
+                        UserName = user.UserName,
+                        user.AvatarPath
+                    },
+                    comment.Text,
+                    CreatedAt = comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding comment");
+                return StatusCode(500, new { error = "Failed to add comment. Please try again." });
+            }
         }
 
         // POST: Profile/ToggleLike

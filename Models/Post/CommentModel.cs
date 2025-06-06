@@ -31,10 +31,10 @@ namespace Blog.Models.Post
 
         public DateTime UpdatedAt { get; set; }
 
-        public virtual IEnumerable<Comment_Like> Comment_Likes { get; set; }
+        public virtual IEnumerable<Comment_Like>? Comment_Likes { get; set; }
         public int LikesCount => Comment_Likes?.Count() ?? 0;
 
-        public virtual IEnumerable<CommentModel> Replies { get; set; } = new List<CommentModel>();
+        public virtual IEnumerable<CommentModel>? Replies { get; set; }
         public int RepliesCount => Replies?.Count() ?? 0;
 
         public bool IsCurrentUserComment { get; set; }  
