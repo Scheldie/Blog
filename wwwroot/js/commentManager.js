@@ -25,27 +25,49 @@
 
     function renderComments(comments, container) {
         container.innerHTML = comments.map(comment => `
-        <div class="comment" data-id="${comment.id}">
-            <div class="comment-header">
-                <img src="${comment.user.avatarPath || '/default-avatar.png'}" 
-                     alt="${comment.user.userName}">
-                <span class="username">${comment.user.userName}</span>
-                <span class="date">${comment.createdAt}</span>
-            </div>
-            <div class="comment-text">${comment.text}</div>
-            <div class="comment-actions">
-                <button class="like-btn" data-likes="${comment.likesCount}">
-                    <img src="../img/Heart.png">
-                    Like (${comment.likesCount})
-                </button>
-            </div>
-            ${comment.replies ? `
-                <div class="replies">
-                    ${renderComments(comment.replies, container)}
-                </div>
-            ` : ''}
+    <div class="comment" data-id="${comment.id}">
+        <div class="comment-header">
+            <img src="${comment.user.avatarPath || '/default-avatar.png'}" class="comment-avatar" 
+                 alt="${comment.user.userName}">
+            <span class="username">${comment.user.userName}</span>
+            <span class="date">${comment.createdAt}</span>
         </div>
+        <div class="comment-text">${comment.text}</div>
+        <div class="comment-actions">
+            <button class="like-btn ${comment.isLiked ? 'active' : ''}" data-likes="${comment.likesCount}">
+                Like (${comment.likesCount})
+            </button>
+        </div>
+        ${comment.replies ? `
+            <div class="replies">
+                ${renderComments(comment.replies, container)}
+            </div>
+        ` : ''}
+    </div>
     `).join('');
+    }
+
+    // Функция для лайков комментариев
+    async function toggleCommentLike(commentId, likeBtn) {
+        try {
+            const response = await fetch(`/Profile/ToggleLike?postId=${commentId}&isComment=true`, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            });
+
+            if (!response.ok) throw new Error('Failed to toggle like');
+
+            const result = await response.json();
+
+            if (result.success) {
+                likeBtn.classList.toggle('active');
+                likeBtn.querySelector('.like-count').textContent = result.likesCount;
+            }
+        } catch (error) {
+            console.error('Error toggling like:', error);
+        }
     }
 
     async function addComment(postId, text, commentsContainer, parentId = null) {

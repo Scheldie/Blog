@@ -34,5 +34,7 @@ namespace Blog.Models.Post
         public virtual IEnumerable<Comment> Comments { get; set; }
 
         public int ViewCount { get; set; }
+
+        public bool IsLiked { get; set; }
     }
 }

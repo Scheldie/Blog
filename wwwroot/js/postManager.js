@@ -107,7 +107,7 @@ export function initPostManager(modalManager, imageManager, commentManager, like
     function createPost(id, date, title, description, images) {
         const postElement = document.createElement('div');
         postElement.className = 'publication';
-        postElement.id = id;
+        postElement.dataset.postId = id.replace('post-', '');
 
         const imagesContainerClass = images.length === 1 ? 'single-image' : 'multiple-images';
 
@@ -115,18 +115,18 @@ export function initPostManager(modalManager, imageManager, commentManager, like
             <div class="edit-icon-container">
                 <img src="../img/edit-icon.png" class="edit-icon" alt="Редактировать">
             </div>
-            <p class="publication-date">${date}</p>
-            <h2 class="publication-title">${title}</h2>
-            <div class="post-images-container ${imagesContainerClass}"></div>
-            <h3 class="publication-description">${description}</h3>
-            <div class="post-bottom">
-                <div class="comments-toggle">
+                <p class="publication-date">${date}</p>
+                <h2 class="publication-title">${title}</h2>
+                <div class="post-images-container ${imagesContainerClass}"></div>
+                <h3 class="publication-description">${description}</h3>
+                <div class="post-bottom">
+                    <div class="comments-toggle">
                     <img src="../img/Chevron down.png" class="toggle-comments">
                     <span>Комментарии</span>
                 </div>
-                <div class="like-section"> 
-                    <span class="like-count">0</span>
-                    <img class="like-icon" src="../img/Heart.png" alt="Лайк">
+                <div class="like-section" data-post-id="${id.replace('post-', '')}"> 
+                    <span class="like-count">${postData?.likesCount || 0}</span>
+                    <img class="like-icon" src="${postData?.isLiked ? '/img/Heart Active.png' : '/img/Heart.png'}" alt="Лайк">
                 </div>
             </div>
             <div class="comments-section">

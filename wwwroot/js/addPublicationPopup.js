@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
     closeBtn.addEventListener('click', hidePopup);
     popup.addEventListener('click', (e) => e.target === popup && hidePopup());
 
-    // Улучшенная обработка файлов
     imageInput.addEventListener('change', function(e) {
         console.log('Files selected:', this.files); // Отладочный вывод
         

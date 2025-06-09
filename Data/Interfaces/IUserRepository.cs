@@ -9,5 +9,7 @@ namespace Blog.Data.Interfaces
 
         public User GetById(int id);
 
+        public User GetByIdWithUsername(int id, string username);
+
     }
 }

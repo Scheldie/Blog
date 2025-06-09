@@ -12,6 +12,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder();
 
@@ -89,13 +90,24 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
+    name: "userProfile",
+    pattern: "user/{id}-{username}",
+    defaults: new { controller = "Profile", action = "Users" });
+
+app.MapControllerRoute(
+    name: "userProfileById",
+    pattern: "user/{id}",
+    defaults: new { controller = "Profile", action = "Users", username = (string?)null });
+
+app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.MapControllerRoute(
-    name: "profile",
-    pattern: "Profile/{action=Users}/{id?}",
-    defaults: new { controller = "Profile" });
+app.MapGet("/Profile/Users", context =>
+{
+    context.Response.Redirect($"/user/{context.User.FindFirstValue(ClaimTypes.NameIdentifier)}");
+    return Task.CompletedTask;
+});
 
 app.Use(async (context, next) =>
 {

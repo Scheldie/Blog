@@ -440,6 +440,8 @@ ul {
     margin-bottom: 15px;
     max-height: 200px;
     overflow-y: auto;
+    max-height: 500px;
+    min-height: auto;
 }
 
 .comment {
@@ -1486,39 +1488,222 @@ body {
     font-weight: 400;
 }
 
-/*<div class="comment" data-id="${comment.id}" >
-<div class="comment-header" >
-<img src="${comment.user.avatarPath || '/default-avatar.png'}"
-alt="${comment.user.userName}" >
-<span class="username" > $ {
-    comment .user.userName
+.comment {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 16px;
+    margin-bottom: 16px;
+    transition: all 0.2s ease;
 }
 
-</span >
-<span class="date" > $ {
-    comment .createdAt
+    .comment:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+/* Comment Header */
+.comment-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
 }
 
-</span >
-</div >
-<div class="comment-text" > $ {
-    comment .text
+.comment-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 12px;
+    border: 2px solid #f0f2f5;
 }
 
-</div >
-<div class="comment-actions" >
-<button class="like-btn" data-likes="${comment.likesCount}" >
-Like (${comment.likesCount})
-</button >
-</div >
-$ {
-    comment .replies ? ` <div class="replies"> $
-
-{
-    renderComments(comment.replies, container)
+.comment-user-info {
+    flex-grow: 1;
 }
 
-</div >
-` : ''
+    .comment-user-info strong {
+        font-weight: 600;
+        color: #050505;
+        display: block;
+        margin-bottom: 2px;
+    }
+
+.comment-date {
+    font-size: 12px;
+    color: #65676b;
 }
-</div >*/
+
+/* Comment Content */
+.comment-text {
+    color: #050505;
+    line-height: 1.4;
+    margin-bottom: 12px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.comment-actions .like-btn {
+    background: url('../img/Heart.png') no-repeat left center;
+    background-size: 16px;
+    padding-left: 22px;
+    position: relative;
+    transition: all 0.2s ease;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    color: #65676b;
+}
+
+    .comment-actions .like-btn:hover {
+        color: #ff2d55;
+    }
+
+    .comment-actions .like-btn.active {
+        background-image: url('../img/Heart Active.png');
+        color: #ff2d55;
+        font-weight: bold;
+    }
+
+    .comment-actions .like-btn:active {
+        transform: scale(1.1);
+    }
+
+    .comment-actions .like-btn .like-count {
+        margin-left: 4px;
+        font-weight: normal;
+    }
+@keyframes heartBeat {
+    0% {
+        transform: scale(1);
+    }
+
+    25% {
+        transform: scale(1.2);
+    }
+
+    50% {
+        transform: scale(1);
+    }
+
+    75% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.like-btn.active {
+    animation: heartBeat 0.5s ease;
+}
+/* Reply Form */
+.reply-form {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed #e4e6eb;
+    display: none;
+}
+
+    .reply-form textarea {
+        width: 100%;
+        min-height: 80px;
+        padding: 8px 12px;
+        border: 1px solid #dddfe2;
+        border-radius: 8px;
+        resize: vertical;
+        margin-bottom: 8px;
+        font-family: inherit;
+    }
+
+    .reply-form button {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-right: 8px;
+    }
+
+    .reply-form .submit-reply {
+        background-color: #1b74e4;
+        color: white;
+        border: none;
+    }
+
+        .reply-form .submit-reply:hover {
+            background-color: #166fe5;
+        }
+
+    .reply-form .cancel-reply {
+        background: none;
+        border: 1px solid #dddfe2;
+        color: #4b4f56;
+    }
+
+        .reply-form .cancel-reply:hover {
+            background-color: #f0f2f5;
+        }
+
+/* Replies */
+.replies-container {
+    margin-left: 40px;
+    padding-left: 16px;
+    border-left: 2px solid #e4e6eb;
+    margin-top: 16px;
+}
+
+/* Error States */
+.error-message {
+    color: #d32f2f;
+    background-color: #fde8e8;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+    .error-message button {
+        background-color: #d32f2f;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+/* No Comments State */
+.no-comments {
+    color: #65676b;
+    text-align: center;
+    padding: 16px;
+    font-style: italic;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .replies-container {
+        margin-left: 20px;
+    }
+
+    .comment-avatar {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+.like-icon {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+    .like-icon.active {
+        content: url('/img/Heart Active.png');
+        transform: scale(1.1);
+    }
+
+    .like-icon:hover {
+        transform: scale(1.1);
+    }

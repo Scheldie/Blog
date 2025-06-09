@@ -1,5 +1,5 @@
 import { initPostManager } from './postManager.js';
-import { initCommentManager } from './commentManager.js';
+import { initCommentManager } from "./commentManager.js";
 import { initLikeManager } from './likeManager.js';
 import { initModalManager } from './modalManager.js';
 import { initImageManager } from './imageManager.js';

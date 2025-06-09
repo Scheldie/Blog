@@ -17,6 +17,7 @@ using Blog.Models.Post;
 using Microsoft.Extensions.Hosting;
 using Blog.Services;
 using Microsoft.AspNetCore.Identity;
+using Blog.Entities.Enums;
 
 namespace Blog.Controllers
 {
@@ -47,48 +48,73 @@ namespace Blog.Controllers
             _fileService = fileService;
         }
 
-        public async Task<IActionResult> Users()
+        public async Task<IActionResult> Users(int id = 0, string? username = null)
         {
-            if (!User.Identity.IsAuthenticated)
-                return Challenge(); // Вернет 401
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            // Если id не указан (равен 0) - показываем профиль текущего пользователя
+            if (id == 0)
             {
-                return RedirectToAction("Login", "Account"); 
+                if (!User.Identity.IsAuthenticated)
+                    return Challenge();
+
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int currentUserId))
+                {
+                    return RedirectToAction("Login", "Authorization");
+                }
+
+                var currentUser = _userRepository.GetById(currentUserId);
+                if (currentUser == null) return NotFound();
+
+                currentUser.IsActive = true;
+                currentUser.LastActiveAt = DateTime.UtcNow;
+                _context.SaveChanges();
+
+                return await GetUserProfile(currentUser, true);
             }
 
-            var user = _userRepository.GetById(userId);
-            if (user == null)
+            // Просмотр профиля по ID
+            User? user;
+
+            // Если указан username, проверяем его соответствие с ID
+            if (!string.IsNullOrEmpty(username))
             {
-                return NotFound();
+                user = _userRepository.GetByIdWithUsername(id, username);
+                if (user == null)
+                {
+                    // Если пользователь с такой парой id+username не найден
+                    return NotFound();
+                }
             }
-            user.IsActive = true;
-            user.LastActiveAt = DateTime.UtcNow;
+            else
+            {
+                // Если username не указан, ищем только по ID
+                user = _userRepository.GetById(id);
+                if (user == null) return NotFound();
+            }
+
+            bool isCurrentUser = User.Identity.IsAuthenticated &&
+                               User.FindFirst(ClaimTypes.NameIdentifier)?.Value == id.ToString();
+
+            return await GetUserProfile(user, isCurrentUser);
+        }
+
+        private async Task<IActionResult> GetUserProfile(User user, bool isCurrentUser)
+        {
             var posts = await _context.Posts
                 .Include(p => p.Post_Images)
                 .ThenInclude(pi => pi.Image)
                 .Include(pl => pl.Post_Likes)
-                .Where(p => p.UserId == userId)
+                .Where(p => p.UserId == user.Id)
                 .ToListAsync();
-            var postImages = new List<Post_Image>();
-            foreach (var post in posts)
-            {
-                Console.WriteLine(post.Title + " " + post.Description + " " + post.Author);
-                foreach (var postImage in post.Post_Images)
-                {
-                    Console.WriteLine(postImage.Image.Path);
-                    postImages.Add(postImage);
-                }
-            }
 
             var model = new ProfileModel
             {
                 Id = user.Id,
                 UserName = user.UserName,
-                Email = user.Email,
+                Email = isCurrentUser ? user.Email : null, // Показываем email только для своего профиля
                 Bio = user.Bio,
                 AvatarPath = user.AvatarPath,
-                IsCurrentUser = true,
+                IsCurrentUser = isCurrentUser,
                 Posts = posts.Select(post => new PostModel
                 {
                     Id = post.Id,
@@ -98,10 +124,10 @@ namespace Blog.Controllers
                     CreatedAt = post.CreatedAt,
                     UpdatedAt = post.UpdatedAt,
                     ImagesCount = post.ImagesCount,
-                    ViewCount = post.ImagesCount,
+                    ViewCount = post.ViewCount,
                     Comments = post.Comments,
                     Post_Likes = post.Post_Likes,
-
+                    IsLiked = post.Post_Likes.Any(p=>p.Like.UserId == user.Id),
                 }).ToList()
             };
 
@@ -389,6 +415,9 @@ namespace Blog.Controllers
         {
             try
             {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userIdInt = string.IsNullOrEmpty(userId) ? 0 : int.Parse(userId);
+
                 var comments = await _context.Comments
                     .Where(c => c.PostId == postId && c.ParentId == null)
                     .Include(c => c.User)
@@ -401,13 +430,15 @@ namespace Blog.Controllers
                         User = new
                         {
                             c.User.Id,
-                            UserName = c.User.UserName, // Use display name if available
+                            UserName = c.User.UserName,
                             c.User.AvatarPath
                         },
                         c.Text,
                         c.PostId,
                         c.ParentId,
                         CreatedAt = c.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
+                        LikesCount = c.Comment_Likes.Count(),
+                        IsLiked = userIdInt > 0 && c.Comment_Likes.Any(l => l.Like.UserId == userIdInt),
                         Replies = c.Replies.Select(r => new
                         {
                             r.Id,
@@ -420,12 +451,14 @@ namespace Blog.Controllers
                             r.Text,
                             r.PostId,
                             r.ParentId,
+                            LikesCount = r.Comment_Likes.Count(),
+                            IsLiked = userIdInt > 0 && r.Comment_Likes.Any(l => l.Like.UserId == userIdInt),
                             CreatedAt = r.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
                         })
                     })
                     .ToListAsync();
 
-                return Ok(comments);
+                return Ok(comments.OrderByDescending(p => p.CreatedAt));
             }
             catch (Exception ex)
             {
@@ -479,41 +512,90 @@ namespace Blog.Controllers
 
         // POST: Profile/ToggleLike
         [HttpPost]
-        public async Task<IActionResult> ToggleLike(int postId)
+        public async Task<IActionResult> ToggleLike(int postId, [FromQuery] bool isComment = false)
         {
-            var userId = 0;
-            if (!Int32.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId))
+            try
             {
-                return Unauthorized();
-            }
-            var like = await _context.Likes
-                .FirstOrDefaultAsync(l => l.EntityId == postId 
-                    && l.UserId == userId && l.LikeType == Entities.Enums.LikeType.Post);
+                Console.WriteLine($"ToggleLike called for postId: {postId}, isComment: {isComment}");
 
-            if (like == null)
-            {
-                // Добавляем лайк
-                _context.Likes.Add(new Like
+
+                var entityExists = isComment
+                    ? await _context.Comments.AnyAsync(c => c.Id == postId)
+                    : await _context.Posts.AnyAsync(p => p.Id == postId);
+                if (!entityExists)
+                    return NotFound(new { error = "Post/Comment not found" });
+                Console.WriteLine($"Received toggle like for post {postId}");
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                Console.WriteLine($"User ID: {userId}");
+
+                if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
                 {
-                    EntityId = postId,
-                    UserId = userId,
-                    LikeType = Entities.Enums.LikeType.Post,
-                    CreatedAt = DateTime.UtcNow
+                    Console.WriteLine("Unauthorized request");
+                    return Json(new { error = "Unauthorized" });
+                }
+
+                var likeType = isComment ? LikeType.Comment : LikeType.Post;
+
+                var like = await _context.Likes
+                    .FirstOrDefaultAsync(l => l.EntityId == postId
+                        && l.UserId == userIdInt
+                        && l.LikeType == likeType);
+
+                if (like == null)
+                {
+                    var likeDb = new Like
+                    {
+                        EntityId = postId,
+                        UserId = userIdInt,
+                        LikeType = likeType,
+                        CreatedAt = DateTime.UtcNow,
+                        User = _userRepository.GetById(userIdInt)
+                    };
+                    _context.Likes.Add(likeDb);
+                    _context.SaveChanges();
+                    if (likeType == LikeType.Comment)
+                    {
+                        _context.Comment_Likes.Add(new Comment_Like
+                        {
+                            CommentId = postId,
+                            PostId = _context.Comments.FirstOrDefaultAsync(c=>c.Id==postId).Result.PostId,
+                            LikeId = likeDb.Id,
+                            Like = likeDb
+                        });
+                    }
+                    else
+                    {
+                        _context.Post_Likes.Add(new Post_Like
+                        {
+                            PostId = postId,
+                            LikeId = likeDb.Id,
+                            Like = likeDb
+                        });
+                    }
+                }
+                else
+                {
+                    _context.Likes.Remove(like);
+                }
+
+                await _context.SaveChangesAsync();
+
+                var likesCount = await _context.Likes
+                    .CountAsync(l => l.EntityId == postId && l.LikeType == likeType);
+
+                return Ok(new
+                {
+                    success = true,
+                    isLiked = like == null,
+                    likesCount
                 });
             }
-            else
+            catch (Exception ex)
             {
-                // Удаляем лайк
-                _context.Likes.Remove(like);
+                _logger.LogError(ex, "Error toggling like");
+                return StatusCode(500, new { error = "Failed to toggle like" });
             }
-
-            await _context.SaveChangesAsync();
-
-            // Получаем обновленное количество лайков
-            var likesCount = await _context.Likes.CountAsync(l => l.EntityId == postId 
-                && l.LikeType == Entities.Enums.LikeType.Post);
-
-            return Ok(new { success = true, isLiked = like == null, likesCount });
         }
     }
 } 

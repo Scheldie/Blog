@@ -19,9 +19,14 @@ namespace Blog.Data.Repositories
         {
             return await DbContext.Users.FindAsync(id);
         }
-        public User GetById(int id)
+        public User? GetById(int id)
         {
             return DbContext.Users.FirstOrDefault(user => user.Id == id);
         }
+        public User? GetByIdWithUsername(int id, string username)
+        {
+            return DbContext.Users.FirstOrDefault(u => u.Id == id && u.UserName == username);
+        }
+
     }
 }

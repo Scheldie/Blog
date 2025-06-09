@@ -58,8 +58,7 @@
                                 <div class="avatar-upload">
                                     <img id="avatarPreview" src="@(Model.AvatarPath ?? "~/img/Image.png")" alt="Текущий аватар" class="current-avatar">
                                     <div class="upload-controls">
-                                        <label for="avatar" class="upload-btn">Выбрать файл</label>
-                                        <input type="file" id="Avatar" name="avatar" accept="image/*">
+                                        <input class="upload-btn" type="file" id="Avatar" name="avatar" accept="image/*">
                                         <span class="file-name">Файл не выбран</span>
                                     </div>
                                 </div>
@@ -210,7 +209,9 @@
                                 <span class="comment-count">@(post.Comments?.Count() ?? 0)</span>
                             </div>
                             <div class="like-section" data-post-id="@post.Id">
-                                <img src="~/img/@((post.Post_Likes?.Any(l => l.Like.UserId == Model.Id) == true) ? "Heart Active.png" : "Heart.png")" class="like-icon">
+                                @Html.AntiForgeryToken()
+                                <img src="~/img/@((post.Post_Likes?.Any(l => l.Like.User.Id == Model.Id) == true) ? "Heart Active.png" : "Heart.png")"
+                                     class="like-icon @((post.Post_Likes?.Any(l => l.Like.UserId == Model.Id) == true) ? "active" : "")">
                                 <span class="like-count">@(post.Post_Likes?.Count() ?? 0)</span>
                             </div>
                         </div>
@@ -219,7 +220,20 @@
                             <div class="comments-list">
                                 @foreach (var comment in post.Comments.OrderByDescending(p => p.CreatedAt))
                                 {
-                                    
+                                    <div class="comment" data-id="@comment.Id">
+                                        <div class="comment-header">
+                                            <img src="@(comment.User.AvatarPath ?? "/img/profile.png")" class="comment-avatar">
+                                            <span class="username">@comment.User.UserName</span>
+                                            <span class="date">@comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                                        </div>
+                                        <div class="comment-text">@comment.Text</div>
+                                        <div class="comment-actions">
+                                            <button class="like-btn @(comment.Comment_Likes.Any(l => l.Like.UserId == Model.Id) ? "active" : "")"
+                                                    data-likes="@comment.Comment_Likes.Count()">
+                                                Like (@comment.Comment_Likes.Count())
+                                            </button>
+                                        </div>
+                                    </div>
                                 }
                             </div>
                             <textarea class="comment-area" placeholder="Введите ваш комментарий"></textarea>
@@ -289,6 +303,7 @@
         <script src="~/js/addPublicationPopup.js"></script>
         <script src="~/js/carousel.js"></script>
         <script src="~/js/gallery.js"></script>
+        <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 
         @{
             await Html.RenderPartialAsync("_ValidationScriptsPartial");
