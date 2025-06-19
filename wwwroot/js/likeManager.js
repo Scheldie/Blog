@@ -44,6 +44,12 @@ export function initLikeManager() {
                         ? "/img/Heart Active.png"
                         : "/img/Heart.png";
                     likeCount.textContent = result.likesCount;
+                    if (result.isLiked) {
+                        likeIcon.classList.add('active');
+                    }
+                    else {
+                        likeIcon.classList.remove('active');
+                    }
                 }
             } catch (error) {
                 console.error('Ошибка лайка поста:', error);
@@ -53,8 +59,19 @@ export function initLikeManager() {
         // Обработка лайков комментариев
         if (e.target.closest('.like-btn')) {
             const likeBtn = e.target.closest('.like-btn');
+
+            // Создаем иконку, если её нет
+            if (!likeBtn.querySelector('.like-icon')) {
+                const isActive = likeBtn.classList.contains('active');
+
+            }
+
             const comment = likeBtn.closest('.comment');
+            if (!comment) return;
+
             const commentId = comment.dataset.id;
+
+            const likeCount = likeBtn.querySelector('.like-count');
 
             e.preventDefault();
             e.stopPropagation();
@@ -64,36 +81,41 @@ export function initLikeManager() {
                 const response = await fetch(`/Profile/ToggleLike?postId=${commentId}&isComment=true`, {
                     method: 'POST',
                     headers: {
-                        'RequestVerificationToken': token
+                        'RequestVerificationToken': token,
+                        'Content-Type': 'application/json'
                     }
                 });
 
-                if (!response.ok) throw new Error('Ошибка сети');
+                if (!response.ok) throw new Error('Ошибка сервера');
 
                 const result = await response.json();
                 if (result.success) {
-                    likeBtn.textContent = `Like (${result.likesCount})`;
+                    
+                    likeCount.textContent = result.likesCount;
                     likeBtn.classList.toggle('active', result.isLiked);
+
+                    setTimeout(() => likeIcon.style.transform = '', 300);
                 }
             } catch (error) {
-                console.error('Ошибка лайка комментария:', error);
+                console.error('Ошибка:', error);
             }
         }
     });
 
-    // Инициализация при загрузке
-    initializeLikes();
-
     return {
-        // Для динамически добавленных элементов
-        setupLikes: function (postElement) {
-            const likeIcon = postElement.querySelector('.like-icon');
-            if (likeIcon) {
-                likeIcon.style.cursor = 'pointer';
-            }
-
-            postElement.querySelectorAll('.like-btn').forEach(btn => {
-                btn.style.cursor = 'pointer';
+        setupLikes: function (element) {
+            // Для динамически добавленных элементов
+            element.querySelectorAll('.like-btn').forEach(btn => {
+                if (!btn.querySelector('.like-icon')) {
+                    const icon = document.createElement('img');
+                    icon.className = 'like-icon';
+                    icon.src = btn.classList.contains('active')
+                        ? "/img/Heart Active.png"
+                        : "/img/Heart.png";
+                    icon.width = 16;
+                    icon.height = 16;
+                    btn.prepend(icon);
+                }
             });
         }
     };

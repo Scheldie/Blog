@@ -4,7 +4,7 @@ export function initPostManager(modalManager, imageManager, commentManager, like
     const imageInput = document.getElementById('image');
     const descriptionInput = document.getElementById('add-publication-description');
     const titleInput = document.getElementById('add-publication-title');
-
+    console.log("ModalManager передан:", modalManager);
     let currentEditPost = null;
 
     async function submitPostToServer(formData) {
@@ -102,6 +102,25 @@ export function initPostManager(modalManager, imageManager, commentManager, like
                 imageManager.updateImagesPreview('images-preview', result.images);
             }
         });
+        document.getElementById('posts-container').addEventListener('click', function (e) {
+            // Проверяем, был ли клик по иконке или её контейнеру
+            const editIcon = e.target.closest('.edit-icon, .edit-icon-container');
+
+            if (editIcon) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const postElement = editIcon.closest('.publication');
+                const postData = getPostData(postElement);
+
+
+                if (modalManager && typeof modalManager.openEditPopup === 'function') {
+                    modalManager.openEditPopup(postData);
+                } else {
+                    console.error('ModalManager не инициализирован');
+                }
+            }
+        });
     }
 
     function createPost(id, date, title, description, images) {
@@ -191,55 +210,44 @@ export function initPostManager(modalManager, imageManager, commentManager, like
     }
 
     function setupPostEvents(postElement) {
-        postElement.querySelector('.edit-icon').addEventListener('click', () => {
-            currentEditPost = postElement;
-            const postData = getPostData(postElement);
-            modalManager.openEditPopup(postData);
-        });
+        const editIcon = postElement.querySelector('.edit-icon');
 
-        commentManager.setupComments(postElement);
-        likeManager.setupLikes(postElement);
+        if (!editIcon) {
+            console.error('Иконка редактирования не найдена в посте:', postElement);
+            return;
+        }
+
+        editIcon.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Клик по иконке редактирования!');
+
+            const postData = getPostData(postElement);
+            console.log('Данные поста:', postData);
+
+            if (modalManager && typeof modalManager.openEditPopup === 'function') {
+                modalManager.openEditPopup(postData);
+            } else {
+                console.error('modalManager не инициализирован');
+            }
+        });
     }
 
     function getPostData(postElement) {
         return {
-            title: postElement.querySelector('.publication-title').textContent,
-            description: postElement.querySelector('.publication-description').textContent,
+            postId: postElement.dataset.postId,
+            title: postElement.querySelector('.publication-title')?.textContent || '',
+            description: postElement.querySelector('.publication-description')?.textContent || '',
             images: Array.from(postElement.querySelectorAll('.post-image')).map(img => ({
                 src: img.src,
                 isFile: false
             })),
-            onSave: (newData) => {
+            onSave: function (newData) {
+                // Обновляем UI
                 postElement.querySelector('.publication-title').textContent = newData.title;
                 postElement.querySelector('.publication-description').textContent = newData.description;
-
-                const imagesContainer = postElement.querySelector('.post-images-container');
-                const imagesContainerClass = newData.images.length === 1 ? 'single-image' :
-                    newData.images.length === 2 ? 'double-image' :
-                        'multiple-images';
-                imagesContainer.className = `post-images-container ${imagesContainerClass}`;
-                imagesContainer.innerHTML = '';
-
-                newData.images.forEach((image, index) => {
-                    const imgContainer = document.createElement('div');
-                    imgContainer.className = 'post-image-item';
-
-                    const img = document.createElement('img');
-                    img.className = 'post-image';
-                    img.alt = `Изображение ${index + 1}`;
-                    img.src = image.src;
-
-                    imgContainer.appendChild(img);
-                    imagesContainer.appendChild(imgContainer);
-
-                    if (newData.images.length === 1) {
-                        img.onload = function () {
-                            adjustSingleImageSize(img);
-                        };
-                    }
-                });
             },
-            onDelete: () => {
+            onDelete: function () {
                 postElement.remove();
             }
         };

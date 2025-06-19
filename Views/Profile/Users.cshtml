@@ -220,18 +220,22 @@
                             <div class="comments-list">
                                 @foreach (var comment in post.Comments.OrderByDescending(p => p.CreatedAt))
                                 {
-                                    <div class="comment" data-id="@comment.Id">
+                                    <div class="comment" data-id="@comment.Id" data-user-id="@comment.User.Id">
                                         <div class="comment-header">
                                             <img src="@(comment.User.AvatarPath ?? "/img/profile.png")" class="comment-avatar">
                                             <span class="username">@comment.User.UserName</span>
                                             <span class="date">@comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
-                                        </div>
-                                        <div class="comment-text">@comment.Text</div>
-                                        <div class="comment-actions">
-                                            <button class="like-btn @(comment.Comment_Likes.Any(l => l.Like.UserId == Model.Id) ? "active" : "")"
-                                                    data-likes="@comment.Comment_Likes.Count()">
-                                                Like (@comment.Comment_Likes.Count())
-                                            </button>
+                                            @if (comment.User.Id == Model.Id)
+                                            {
+                                                <div class="comment-actions-menu">
+                                                    <button class="edit-comment-btn" data-comment-id="@comment.Id">
+                                                        <img src="/img/edit-icon.png" alt="Редактировать" width="16">
+                                                    </button>
+                                                    <button class="delete-comment-btn" data-comment-id="@comment.Id">
+                                                        <img src="/img/delete-icon.png" alt="Удалить" width="16">
+                                                    </button>
+                                                </div>
+                                            }
                                         </div>
                                     </div>
                                 }

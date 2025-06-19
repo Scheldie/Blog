@@ -18,7 +18,10 @@ namespace Blog.Models.Post
         public string Description { get; set; }
         public bool DeleteExistingImages { get; set; }
         public int DeletedExistingImagesCount { get; set; }
+        
+        public List<string>? DeletedFilesPaths { get; set; } // Коллекция для хранения путей удаляемых файлов
+
         [DataType(DataType.Upload)]
-        public IEnumerable<IFormFile> NewImageFiles { get; set; }
+        public IEnumerable<IFormFile>? NewImageFiles { get; set; }
     }
 }

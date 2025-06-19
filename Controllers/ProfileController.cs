@@ -296,37 +296,50 @@ namespace Blog.Controllers
                 return BadRequest(ModelState);
             }
 
+            _logger.LogInformation($"Editing post {model.PostId}. DeleteExistingImages: {model.DeleteExistingImages}");
+            _logger.LogInformation($"Deleted files paths: {string.Join(", ", model.DeletedFilesPaths ?? new List<string>())}");
+
+            // Удаляем проверку ModelState для NewImageFiles
+            ModelState.Remove("NewImageFiles");
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var userId = 0;
             if (!Int32.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId))
             {
                 return Unauthorized();
             }
+
             var post = await _context.Posts
                 .Include(p => p.Post_Images)
+                .ThenInclude(pi => pi.Image)
                 .FirstOrDefaultAsync(p => p.Id == model.PostId && p.UserId == userId);
 
             if (post == null)
             {
                 return NotFound();
             }
+
             post.Title = model.Title;
             post.Description = model.Description;
 
             // Обработка новых изображений
-            if (model.NewImageFiles != null && model.NewImageFiles.Count() > 0)
+            if (model.NewImageFiles != null && model.NewImageFiles.Any())
             {
                 // Удаляем старые изображения, если нужно
                 if (model.DeleteExistingImages)
                 {
-                    foreach (var postImage in post.Post_Images)
+                    foreach (var postImage in post.Post_Images.ToList())
                     {
-                        
                         var filePath = Path.Combine(_env.WebRootPath, postImage.Image.Path.TrimStart('/'));
                         if (System.IO.File.Exists(filePath))
                         {
                             System.IO.File.Delete(filePath);
                         }
-                        _context.Post_Images.Remove(_postImageRepository.GetByImageId(postImage.Image.Id));
+                        _context.Post_Images.Remove(postImage);
+                        _context.Images.Remove(postImage.Image);
                     }
                 }
 
@@ -336,30 +349,31 @@ namespace Blog.Controllers
                 {
                     Directory.CreateDirectory(uploadsFolder);
                 }
+
                 var counter = post.Post_Images.Count();
-                foreach (var file in model.NewImageFiles.Take(4 - post.Post_Images.Count())) // Максимум 4 изображения
+                foreach (var file in model.NewImageFiles.Take(4 - post.Post_Images.Count()))
                 {
                     if (file.Length > 0)
                     {
-                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
-                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        var imagePath = await _fileService.SaveFileAsync(file);
+                        if (string.IsNullOrEmpty(imagePath))
                         {
-                            await file.CopyToAsync(fileStream);
+                            continue; // Пропускаем если не удалось сохранить
                         }
+
                         var image = new Image
                         {
+                            Path = imagePath,
                             CreatedAt = DateTime.UtcNow,
-                            Path = $"/uploads/posts/{uniqueFileName}",
                             UserId = userId
                         };
                         _context.Images.Add(image);
-                        
+                        await _context.SaveChangesAsync(); // Сохраняем изображение, чтобы получить ID
+
                         var postImage = new Post_Image
                         {
                             PostId = post.Id,
-                            ImageId = _imageRepository.GetByPath(image.Path).Id,
+                            ImageId = image.Id, // Используем ID сохраненного изображения
                             Order = counter++
                         };
 
@@ -367,6 +381,42 @@ namespace Blog.Controllers
                     }
                 }
             }
+            // Обработка удаленных изображений
+            if (model.DeletedFilesPaths != null && model.DeletedFilesPaths.Any())
+            {
+                _logger.LogInformation($"Processing {model.DeletedFilesPaths.Count} deleted images");
+
+                foreach (var filePath in model.DeletedFilesPaths)
+                {
+                    _logger.LogInformation($"Processing deletion for path: {filePath}");
+
+                    var postImage = post.Post_Images
+                        .FirstOrDefault(pi => pi.Image.Path == filePath);
+
+                    if (postImage != null)
+                    {
+                        _logger.LogInformation($"Found image to delete: {postImage.Image.Path}");
+
+                        // Удаляем физический файл
+                        var fullPath = Path.Combine(_env.WebRootPath, postImage.Image.Path.TrimStart('/'));
+                        if (System.IO.File.Exists(fullPath))
+                        {
+                            System.IO.File.Delete(fullPath);
+                            _logger.LogInformation($"Deleted file from disk: {fullPath}");
+                        }
+
+                        // Удаляем записи из БД
+                        _context.Post_Images.Remove(postImage);
+                        _context.Images.Remove(postImage.Image);
+                        _logger.LogInformation($"Removed image from database: {postImage.Image.Id}");
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Image not found for path: {filePath}");
+                    }
+                }
+            }
+
             await _context.SaveChangesAsync();
             post.ImagesCount = _context.Post_Images.Count(p => p.PostId == post.Id);
             _context.Posts.Update(post);
@@ -411,13 +461,13 @@ namespace Blog.Controllers
             return Ok(new { success = true });
         }
         [HttpGet]
+
         public async Task<IActionResult> GetComments(int postId)
         {
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var userIdInt = string.IsNullOrEmpty(userId) ? 0 : int.Parse(userId);
-
                 var comments = await _context.Comments
                     .Where(c => c.PostId == postId && c.ParentId == null)
                     .Include(c => c.User)
@@ -429,22 +479,24 @@ namespace Blog.Controllers
                         c.Id,
                         User = new
                         {
-                            c.User.Id,
+                            Id = c.UserId,
                             UserName = c.User.UserName,
                             c.User.AvatarPath
                         },
+                        c.UserId,
                         c.Text,
                         c.PostId,
                         c.ParentId,
                         CreatedAt = c.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
                         LikesCount = c.Comment_Likes.Count(),
                         IsLiked = userIdInt > 0 && c.Comment_Likes.Any(l => l.Like.UserId == userIdInt),
+                        IsCurrentUser = c.User.Id == userIdInt,
                         Replies = c.Replies.Select(r => new
                         {
                             r.Id,
                             User = new
                             {
-                                r.User.Id,
+                                r.UserId,
                                 UserName = r.User.UserName,
                                 r.User.AvatarPath
                             },
@@ -454,10 +506,10 @@ namespace Blog.Controllers
                             LikesCount = r.Comment_Likes.Count(),
                             IsLiked = userIdInt > 0 && r.Comment_Likes.Any(l => l.Like.UserId == userIdInt),
                             CreatedAt = r.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
+                            IsCurrentUser = c.User.Id == userIdInt
                         })
                     })
                     .ToListAsync();
-
                 return Ok(comments.OrderByDescending(p => p.CreatedAt));
             }
             catch (Exception ex)
@@ -466,6 +518,7 @@ namespace Blog.Controllers
                 return StatusCode(500, new { error = "Failed to load comments. Please try again." });
             }
         }
+
 
         [HttpPost]
         public async Task<IActionResult> AddComment([FromBody] CommentCreateModel dto)
@@ -476,14 +529,30 @@ namespace Blog.Controllers
                 var user = await _context.Users.FindAsync(userId);
                 if (user == null) return Unauthorized();
 
+                int? rootParentId = null;
+                bool isReplyToReply = false;
+
+                if (dto.ParentId.HasValue)
+                {
+                    var parentComment = await _context.Comments
+                        .FirstOrDefaultAsync(c => c.Id == dto.ParentId.Value);
+
+                    if (parentComment == null) return BadRequest("Parent comment not found");
+
+                    // Определяем корневой комментарий
+                    rootParentId = parentComment.ParentId ?? dto.ParentId;
+                    // Это ответ на ответ, если у родителя есть ParentId
+                    isReplyToReply = parentComment.ParentId.HasValue;
+                    dto.PostId = parentComment.PostId;
+                }
+
                 var comment = new Comment
                 {
                     Text = dto.Text.Trim(),
                     PostId = dto.PostId,
-                    ParentId = dto.ParentId,
+                    ParentId = rootParentId, // Всегда храним корневой ParentId
                     UserId = user.Id,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 _context.Comments.Add(comment);
@@ -493,20 +562,18 @@ namespace Blog.Controllers
                 {
                     success = true,
                     comment.Id,
-                    User = new
-                    {
-                        user.Id,
-                        UserName = user.UserName,
-                        user.AvatarPath
-                    },
+                    User = new { user.Id, user.UserName, user.AvatarPath },
                     comment.Text,
-                    CreatedAt = comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                    CreatedAt = comment.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
+                    rootParentId,
+                    isReplyToReply
                 });
+
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error adding comment");
-                return StatusCode(500, new { error = "Failed to add comment. Please try again." });
+                return StatusCode(500, new { error = "Failed to add comment" });
             }
         }
 
@@ -597,5 +664,94 @@ namespace Blog.Controllers
                 return StatusCode(500, new { error = "Failed to toggle like" });
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> DeleteComment(int commentId)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var comment = await _context.Comments
+                    .Include(c => c.User)
+                    .FirstOrDefaultAsync(c => c.Id == commentId);
+
+                if (comment == null) return NotFound();
+
+                // Проверяем, что пользователь удаляет свой комментарий
+                if (comment.User.Id != userId)
+                    return Unauthorized();
+
+                _context.Comments.Remove(comment);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting comment");
+                return StatusCode(500, new { error = "Failed to delete comment" });
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetReplies(int commentId)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userIdInt = string.IsNullOrEmpty(userId) ? 0 : int.Parse(userId);
+
+                var replies = await _context.Comments
+                    .Where(c => c.ParentId == commentId)
+                    .Include(c => c.User)
+                    .Include(c => c.Comment_Likes)
+                    .Select(c => new
+                    {
+                        c.Id,
+                        User = new { Id = c.UserId, c.User.UserName, c.User.AvatarPath },
+                        c.Text,
+                        CreatedAt = c.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
+                        LikesCount = c.Comment_Likes.Count(),
+                        IsLiked = userIdInt > 0 && c.Comment_Likes.Any(l => l.Like.UserId == userIdInt),
+                        IsCurrentUser = c.User.Id == userIdInt,
+
+                    })
+                    .ToListAsync();
+
+                return Ok(replies);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading replies");
+                return StatusCode(500, new { error = "Failed to load replies" });
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> EditComment([FromBody] CommentEditModel model)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                Comment comment = await _context.Comments
+                    .FirstOrDefaultAsync(c => c.Id == model.CommentId && c.UserId == userId);
+
+                if (comment == null)
+                {
+                    return NotFound(new { error = "Comment not found or you don't have permission to edit it" });
+                }
+                
+                comment.Text = model.Text.Trim();
+                comment.UpdatedAt = DateTime.UtcNow;
+
+                _context.Comments.Update(comment);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error editing comment");
+                return StatusCode(500, new { error = "Failed to edit comment" });
+            }
+        }
+        
     }
 } 

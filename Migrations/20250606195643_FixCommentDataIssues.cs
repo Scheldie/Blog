@@ -85,6 +85,7 @@ namespace Blog.Migrations
             SET likes_count = 0 
             WHERE likes_count IS NULL;
         ");
+            
         }
 
         /// <inheritdoc />
@@ -153,6 +154,17 @@ namespace Blog.Migrations
                 principalTable: "Posts",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
+            migrationBuilder.DropForeignKey(
+                name: "FK_Comments_Comments_ParentId",
+                table: "Comments"
+            );
+            migrationBuilder.AddForeignKey(
+                name: "FK_Comments_Comments_ParentId",
+                table: "Comments",
+                column: "ParentId",
+                principalTable: "Comments",
+                principalColumn: "Id"
+            );
         }
     }
 }

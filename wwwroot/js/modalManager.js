@@ -1,128 +1,218 @@
 export function initModalManager() {
-    // Создаем контейнер для модальных окон
     const modalContainer = document.getElementById('edit-popup-container');
+    const modalOverlay = document.getElementById('edit-popup-overlay');
+    const modalContent = document.getElementById('edit-popup-content');
+    const closeBtn = document.querySelector('.cancel-edit');
+    const saveBtn = document.querySelector('.save-edit');
+    const deleteBtn = document.getElementById('delete-post-btn');
+
+    if (!modalContainer || !modalOverlay || !modalContent) {
+        console.error('Modal elements not found');
+        return {
+            openEditPopup: () => console.error('Modal not initialized'),
+            closeModal: () => console.error('Modal not initialized')
+        };
+    }
+
+    let currentPostData = null;
 
     function openEditPopup(postData) {
+        currentPostData = postData;
+        const deletedFilesPaths = [];
+        currentPostData.deletedFilesPaths = [];
+        document.getElementById('edit-title').value = postData.title || '';
+        document.getElementById('edit-description').value = postData.description || '';
+        document.getElementById('edit-post-id').value = postData.postId || '';
 
-        const modal = document.getElementById('edit-popup-overlay');
-        modal.classList.add('active');
+        console.log(postData.postId, postData.title, postData.description);
+        const imageInput = document.getElementById('edit-image-input');
+        if (imageInput) {
+            imageInput.addEventListener('change', function (e) {
+                const files = Array.from(e.target.files);
+                if (files.length > 0) {
+                    files.forEach(file => {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            const imgElement = document.createElement('div');
+                            imgElement.className = 'image-preview-item';
+                            imgElement.innerHTML = `
+                            <img src="${e.target.result}" class="preview-image">
+                            <button class="remove-image-btn">×</button>
+                        `;
+                            previewContainer.appendChild(imgElement);
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                }
+            });
+        }
 
-        let imagesHtml = '';
-        postData.images.forEach((image, index) => {
-            imagesHtml += `
-                <div class="image-preview-item" data-index="${index}">
-                    <img src="${image.src}">
-                    <button class="remove-image-btn">×</button>
-                </div>
+        const previewContainer = document.getElementById('edit-images-preview');
+        previewContainer.innerHTML = '';
+        postData.images.forEach(img => {
+            const imgElement = document.createElement('div');
+            imgElement.className = 'image-preview-item';
+            imgElement.innerHTML = `
+                <img src="${img.src}" class="preview-image">
+                <button class="remove-image-btn">×</button>
             `;
+            previewContainer.appendChild(imgElement);
+
+        });
+        if (!imageInput || !previewContainer) {
+            console.log('это imageInput или preview');
+        }
+        previewContainer.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-image-btn')) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const imageItem = e.target.closest('.image-preview-item');
+                if (imageItem) {
+                    const imgElement = imageItem.querySelector('img');
+                    if (imgElement) {
+                        if (imgElement.src.startsWith('http')) {
+                            const url = new URL(imgElement.src);
+                            // Добавляем в массив currentPostData
+                            currentPostData.deletedFilesPaths.push(url.pathname);
+                        }
+                    }
+                    imageItem.style.opacity = '0';
+                    setTimeout(() => imageItem.remove(), 300);
+                }
+            }
         });
 
-        // Обработчики событий
-        const closeModal = () => {
-            modal.classList.remove('active');
-            setTimeout(() => modalContainer.innerHTML = '', 300);
-        };
+        modalContainer.style.display = 'flex';
+        setTimeout(() => {
+            modalOverlay.classList.add('active');
+        }, 10);
+    }
 
-        modal.querySelector('.close-btn').addEventListener('click', closeModal);
-        modal.querySelector('.cancel-edit').addEventListener('click', closeModal);
+    function closeModal() {
+        modalOverlay.classList.remove('active');
+        setTimeout(() => {
+            modalContainer.style.display = 'none';
+            currentPostData = null;
+        }, 300);
+    }
 
-        // Удаление поста
-        modal.querySelector('.delete-post-btn').addEventListener('click', () => {
-            postData.onDelete();
+    // Исправленный обработчик клика по оверлею
+    modalOverlay.addEventListener('click', function (e) {
+        if (e.target === this) { // Проверяем, что кликнули именно на оверлей
             closeModal();
-        });
+        }
+    });
 
-        // Сохранение изменений
-        modal.querySelector('.save-edit').addEventListener('click', () => {
-            const newData = {
-                title: modal.querySelector('.edit-title').value,
-                description: modal.querySelector('.edit-description').value,
-                images: postData.images
-            };
-            postData.onSave(newData);
-            closeModal();
-        });
+    // Обработчики кнопок
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
 
-        // Удаление отдельных изображений
-        modal.querySelectorAll('.remove-image-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const item = this.closest('.image-preview-item');
-                const index = parseInt(item.dataset.index);
+    if (saveBtn) {
+        saveBtn.addEventListener('click', async function () {
+            try {
+                const formData = new FormData();
 
-                // Удаляем изображение из массива
-                postData.images.splice(index, 1);
+                // Обязательные поля
+                const postId = document.getElementById('edit-post-id').value;
+                const title = document.getElementById('edit-title').value;
+                const description = document.getElementById('edit-description').value;
 
-                // Обновляем индексы у оставшихся элементов
-                const items = modal.querySelectorAll('.image-preview-item');
-                items.forEach((el, i) => {
-                    el.dataset.index = i;
+                if (!postId || !title || !description) {
+                    throw new Error('Заполните все обязательные поля');
+                }
+
+                formData.append('PostId', postId);
+                formData.append('Title', title);
+                formData.append('Description', description);
+
+                // Удаленные изображения
+                if (currentPostData.deletedFilesPaths && currentPostData.deletedFilesPaths.length > 0) {
+                    formData.append('DeleteExistingImages', 'true');
+                    // Добавляем каждый путь отдельно
+                    currentPostData.deletedFilesPaths.forEach(path => {
+                        formData.append('DeletedFilesPaths', path);
+                    });
+                } else {
+                    formData.append('DeleteExistingImages', 'false');
+                }
+                console.log('Deleting images:', currentPostData.deletedFilesPaths);
+
+                // Новые изображения
+                const imageInput = document.getElementById('edit-image-input');
+                if (imageInput && imageInput.files.length > 0) {
+                    Array.from(imageInput.files).forEach(file => {
+                        formData.append('NewImageFiles', file);
+                    });
+                }
+
+                // Отправка на сервер
+                const response = await fetch('/Profile/EditPost', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
                 });
 
-                // Удаляем элемент из DOM
-                item.remove();
-            });
-        });
+                if (!response.ok) {
+                    const error = await response.text();
+                    throw new Error(error);
+                }
 
-        // Добавление новых изображений
-        modal.querySelector('.edit-image-input').addEventListener('change', function (e) {
-            const files = Array.from(e.target.files);
-            if (files.length + postData.images.length > 4) {
-                this.value = '';
-                openAlert('Ошибка', 'Можно загрузить не более 4 изображений');
-                return;
+                if (currentPostData.onSave) {
+                currentPostData.onSave({ 
+                    title, 
+                    description,
+                    deletedFilesPaths: currentPostData.deletedFilesPaths 
+                });
             }
 
-            files.forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const index = postData.images.length;
-                    postData.images.push({ src: e.target.result, isFile: true });
-
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'image-preview-item';
-                    previewItem.dataset.index = index;
-                    previewItem.innerHTML = `
-                        <img src="${e.target.result}">
-                        <button class="remove-image-btn">×</button>
-                    `;
-
-                    previewItem.querySelector('.remove-image-btn').addEventListener('click', function () {
-                        const itemIndex = parseInt(previewItem.dataset.index);
-                        postData.images.splice(itemIndex, 1);
-                        previewItem.remove();
-                    });
-
-                    document.getElementById('edit-images-preview').appendChild(previewItem);
-                };
-                reader.readAsDataURL(file);
-            });
-
-            this.value = '';
+                closeModal();
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+                alert('Ошибка при сохранении: ' + error.message);
+            }
         });
     }
 
-    function openAlert(title, message) {
-        modalContainer.innerHTML = '';
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async function () {
+            if (!currentPostData || !confirm('Вы уверены, что хотите удалить этот пост?')) return;
 
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay active';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <h3>${title}</h3>
-                <p>${message}</p>
-                <button class="modal-ok">OK</button>
-            </div>
-        `;
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const response = await fetch(`/Profile/DeletePost?postId=${currentPostData.postId}`, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': token
+                    }
+                });
 
-        modalContainer.appendChild(modal);
-        modal.querySelector('.modal-ok').addEventListener('click', () => {
-            modal.classList.remove('active');
-            setTimeout(() => modalContainer.innerHTML = '', 300);
+                if (!response.ok) {
+                    const error = await response.text();
+                    throw new Error(error || 'Ошибка сервера');
+                }
+
+                if (currentPostData.onDelete) {
+                    currentPostData.onDelete();
+                }
+                closeModal();
+            } catch (error) {
+                console.error('Ошибка удаления:', error);
+                alert('Ошибка при удалении: ' + error.message);
+            }
         });
     }
+
+    // Обработчик Esc
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modalContainer.style.display === 'flex') {
+            closeModal();
+        }
+    });
 
     return {
         openEditPopup,
-        openAlert
+        closeModal
     };
 }

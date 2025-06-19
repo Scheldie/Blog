@@ -13,60 +13,134 @@
         } catch (error) {
             console.error('Error:', error);
             container.innerHTML = `
-            <div class="alert alert-danger">
-                ${error.message}
-                <button onclick="loadComments(${postId}, this.parentElement)">
-                    Try Again
-                </button>
-            </div>
-        `;
+                <div class="alert alert-danger">
+                    ${error.message}
+                    <button onclick="loadComments(${postId}, this.parentElement)">
+                        Try Again
+                    </button>
+                </div>
+            `;
         }
     }
 
-    function renderComments(comments, container) {
-        container.innerHTML = comments.map(comment => `
-    <div class="comment" data-id="${comment.id}">
-        <div class="comment-header">
-            <img src="${comment.user.avatarPath || '/default-avatar.png'}" class="comment-avatar" 
-                 alt="${comment.user.userName}">
-            <span class="username">${comment.user.userName}</span>
-            <span class="date">${comment.createdAt}</span>
-        </div>
-        <div class="comment-text">${comment.text}</div>
-        <div class="comment-actions">
-            <button class="like-btn ${comment.isLiked ? 'active' : ''}" data-likes="${comment.likesCount}">
-                Like (${comment.likesCount})
-            </button>
-        </div>
-        ${comment.replies ? `
-            <div class="replies">
-                ${renderComments(comment.replies, container)}
+    function renderComments(comments, container, isTopLevel = true, parentComment = null) {
+        // Clear existing content only for top-level containers
+        if (isTopLevel) {
+            container.innerHTML = '';
+        }
+
+        comments.forEach(comment => {
+            const commentElement = document.createElement('div');
+            commentElement.className = 'comment';
+            commentElement.dataset.id = comment.id;
+            commentElement.dataset.userId = comment.user.id;
+
+            const parentUsername = parentComment ?
+                parentComment.querySelector('.username').textContent :
+                null;
+
+            commentElement.innerHTML = `
+            <div class="comment-header">
+                <img src="${comment.user.avatarPath || '/default-avatar.png'}" class="comment-avatar" 
+                     alt="${comment.user.userName}">
+                <span class="username">${comment.user.userName}</span>
+                ${parentUsername ? `<span class="reply-to">@${parentUsername}</span>` : ''}
+                <span class="date">${comment.createdAt}</span>
+                ${comment.isCurrentUser ? `
+                    <div class="comment-actions-menu">
+                        <button class="edit-comment-btn" data-comment-id="${comment.id}">
+                            <img src="/img/edit-icon.png" alt="Редактировать" width="16">
+                        </button>
+                        <button class="delete-comment-btn" data-comment-id="${comment.id}">
+                            <img src="/img/delete-icon.png" alt="Удалить" width="16">
+                        </button>
+                    </div>
+                ` : ''}
             </div>
-        ` : ''}
-    </div>
-    `).join('');
+            <div class="comment-text" data-comment-id="${comment.id}">${comment.text}</div>
+            <div class="comment-actions">
+                <button class="like-btn ${comment.isLiked ? 'active' : ''}" data-likes="${comment.likesCount}"> 
+                    <span class="like-count">${comment.likesCount}</span>
+                </button>
+                <button class="reply-btn">Ответить</button>
+            </div>
+            
+            <div class="replies-container">
+                <div class="toggle-replies" data-comment-id="${comment.id}">
+                    <img src="/img/Chevron down.png" class="toggle-icon">
+                    <span class="replies-count">${comment.replies?.length || 0} ответов</span>
+                </div>
+                <div class="replies-list" style="display: none;"></div>
+            </div>
+            
+            <div class="reply-form" style="display: none;">
+                <textarea class="reply-textarea" placeholder="Ваш ответ..."></textarea>
+                <div class="reply-form-actions">
+                    <button class="submit-reply">Отправить</button>
+                    <button class="cancel-reply">Отмена</button>
+                </div>
+            </div>
+            
+            <div class="edit-form" style="display: none;">
+                <textarea class="edit-textarea" data-comment-id="${comment.id}">${comment.text}</textarea>
+                <div class="edit-form-actions">
+                    <button class="save-edit-btn" data-comment-id="${comment.id}">Сохранить</button>
+                    <button class="cancel-edit-btn" data-comment-id="${comment.id}">Отмена</button>
+                </div>
+            </div>
+        `;
+
+            container.appendChild(commentElement);
+            setupCommentEvents(commentElement, container.dataset.postId);
+
+            // Initialize replies list if replies exist
+            if (comment.replies && comment.replies.length > 0) {
+                const repliesList = commentElement.querySelector('.replies-list');
+                renderComments(comment.replies, repliesList, false, commentElement);
+            }
+        });
     }
 
-    // Функция для лайков комментариев
-    async function toggleCommentLike(commentId, likeBtn) {
+    async function deleteComment(commentId) {
         try {
-            const response = await fetch(`/Profile/ToggleLike?postId=${commentId}&isComment=true`, {
+            const response = await fetch(`/Profile/DeleteComment?commentId=${commentId}`, {
                 method: 'POST',
                 headers: {
                     'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
                 }
             });
 
-            if (!response.ok) throw new Error('Failed to toggle like');
+            if (!response.ok) throw new Error('Failed to delete comment');
 
             const result = await response.json();
-
-            if (result.success) {
-                likeBtn.classList.toggle('active');
-                likeBtn.querySelector('.like-count').textContent = result.likesCount;
-            }
+            return result.success;
         } catch (error) {
-            console.error('Error toggling like:', error);
+            console.error('Error deleting comment:', error);
+            return false;
+        }
+    }
+
+    async function editComment(commentId, newText) {
+        try {
+            const response = await fetch(`/Profile/EditComment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    commentId: commentId,
+                    text: newText
+                })
+            });
+
+            if (!response.ok) throw new Error('Failed to edit comment');
+
+            const result = await response.json();
+            return result.success;
+        } catch (error) {
+            console.error('Error editing comment:', error);
+            return false;
         }
     }
 
@@ -86,24 +160,25 @@
                 })
             });
 
-            // First get the response as text
-            const responseText = await response.text();
-            console.log('Add comment response:', responseText);
+            const result = await response.json();
 
             if (!response.ok) {
-                try {
-                    const errorData = JSON.parse(responseText);
-                    throw new Error(errorData.error || 'Failed to add comment');
-                } catch (e) {
-                    throw new Error(responseText || 'Failed to add comment');
-                }
+                throw new Error(result.error || 'Failed to add comment');
             }
 
-            // Parse the successful response
-            const result = JSON.parse(responseText);
-
-            // Refresh comments after successful addition
-            await loadComments(postId, commentsContainer);
+            if (parentId) {
+                const parentComment = commentsContainer.querySelector(`.comment[data-id="${parentId}"]`);
+                if (parentComment) {
+                    const repliesList = parentComment.querySelector('.replies-list');
+                    if (repliesList) {
+                        const repliesResponse = await fetch(`/Profile/GetReplies?commentId=${parentId}`);
+                        const replies = await repliesResponse.json();
+                        renderComments(replies, repliesList);
+                    }
+                }
+            } else {
+                await loadComments(postId, commentsContainer);
+            }
 
         } catch (error) {
             console.error('Error adding comment:', error);
@@ -111,69 +186,156 @@
         }
     }
 
-    function createCommentElement(comment) {
-        const commentElement = document.createElement('div');
-        commentElement.className = 'comment';
-        commentElement.dataset.commentId = comment.id;
-        commentElement.dataset.postId = comment.postId;
-
-        commentElement.innerHTML = `
-            <div class="comment-header">
-                <img src="${comment.user.avatarPath || '/img/profile.png'}" 
-                     class="comment-avatar">
-                <div class="comment-user-info">
-                    <strong>${comment.user.userName}</strong>
-                    <span class="comment-date">
-                        ${new Date(comment.createdAt).toLocaleString()}
-                    </span>
-                </div>
-            </div>
-            <div class="comment-text">${comment.text}</div>
-            <div class="comment-actions">
-                <button class="reply-btn">Ответить</button>
-            </div>
-            <div class="reply-form" style="display: none;">
-                <textarea class="reply-textarea" placeholder="Ваш ответ..."></textarea>
-                <button class="submit-reply">Отправить</button>
-                <button class="cancel-reply">Отмена</button>
-            </div>
-            <div class="replies-container"></div>
-        `;
-
-        return commentElement;
-    }
-
     function setupCommentEvents(commentElement, postId) {
+        const commentId = commentElement.dataset.id;
+        const userId = commentElement.dataset.userId;
+
+        // Reply functionality
         const replyBtn = commentElement.querySelector('.reply-btn');
         const replyForm = commentElement.querySelector('.reply-form');
         const replyTextarea = commentElement.querySelector('.reply-textarea');
         const submitReply = commentElement.querySelector('.submit-reply');
         const cancelReply = commentElement.querySelector('.cancel-reply');
-        const repliesContainer = commentElement.querySelector('.replies-container');
 
-        replyBtn.addEventListener('click', () => {
-            replyForm.style.display = 'block';
-        });
+        if (replyBtn && replyForm) {
+            replyBtn.addEventListener('click', () => {
+                replyForm.style.display = 'block';
+                replyTextarea.focus();
+            });
 
-        cancelReply.addEventListener('click', () => {
-            replyForm.style.display = 'none';
-            replyTextarea.value = '';
-        });
+            cancelReply.addEventListener('click', () => {
+                replyForm.style.display = 'none';
+                replyTextarea.value = '';
+            });
 
-        submitReply.addEventListener('click', async () => {
-            const replyText = replyTextarea.value.trim();
-            if (!replyText) return;
+            submitReply.addEventListener('click', async () => {
+                const replyText = replyTextarea.value.trim();
+                if (!replyText) return;
 
-            await addComment(
-                postId,
-                replyText,
-                commentElement.closest('.comments-section').querySelector('.comments-list'),
-                commentElement.dataset.commentId
-            );
+                try {
+                    await addComment(
+                        postId,
+                        replyText,
+                        commentElement.closest('.comments-list'),
+                        commentId
+                    );
 
-            replyForm.style.display = 'none';
-            replyTextarea.value = '';
-        });
+                    // Refresh the replies list after successful submission
+                    const repliesList = commentElement.querySelector('.replies-list');
+                    if (repliesList) {
+                        const response = await fetch(`/Profile/GetReplies?commentId=${commentId}`);
+                        const replies = await response.json();
+                        renderComments(replies, repliesList, false, commentElement);
+
+                        // Show the replies list if it was hidden
+                        repliesList.style.display = 'block';
+                        const toggleIcon = commentElement.querySelector('.toggle-icon');
+                        if (toggleIcon) {
+                            toggleIcon.src = '/img/Chevron up.png';
+                        }
+
+                        // Update replies count
+                        const repliesCount = commentElement.querySelector('.replies-count');
+                        if (repliesCount) {
+                            repliesCount.textContent = `${replies.length} ответов`;
+                        }
+                    }
+
+                    replyForm.style.display = 'none';
+                    replyTextarea.value = '';
+                } catch (error) {
+                    console.error('Error submitting reply:', error);
+                    // Show error message to user
+                }
+            });
+        }
+
+        // Delete functionality
+        const deleteBtn = commentElement.querySelector('.delete-comment-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', async () => {
+                if (confirm('Вы уверены, что хотите удалить этот комментарий?')) {
+                    const success = await deleteComment(commentId);
+                    if (success) {
+                        commentElement.remove();
+                    }
+                }
+            });
+        }
+
+        // Edit functionality
+        const editBtn = commentElement.querySelector('.edit-comment-btn');
+        const editForm = commentElement.querySelector('.edit-form');
+        const editTextarea = commentElement.querySelector('.edit-textarea');
+        const saveEditBtn = commentElement.querySelector('.save-edit-btn');
+        const cancelEditBtn = commentElement.querySelector('.cancel-edit-btn');
+        const commentTextElement = commentElement.querySelector('.comment-text');
+
+        if (editBtn && editForm) {
+            editBtn.addEventListener('click', () => {
+                editForm.style.display = 'block';
+                editTextarea.value = commentTextElement.textContent;
+                commentTextElement.style.display = 'none';
+                editTextarea.focus();
+            });
+
+            cancelEditBtn.addEventListener('click', () => {
+                editForm.style.display = 'none';
+                commentTextElement.style.display = 'block';
+            });
+
+            saveEditBtn.addEventListener('click', async () => {
+                const newText = editTextarea.value.trim();
+                if (!newText) return;
+
+                const success = await editComment(commentId, newText);
+                if (success) {
+                    commentTextElement.textContent = newText;
+                    editForm.style.display = 'none';
+                    commentTextElement.style.display = 'block';
+                }
+            });
+        }
+
+        // Toggle replies functionality
+        const toggleReplies = commentElement.querySelector('.toggle-replies');
+        if (toggleReplies) {
+            const repliesList = commentElement.querySelector('.replies-list');
+            const toggleIcon = toggleReplies.querySelector('.toggle-icon');
+            const repliesCount = toggleReplies.querySelector('.replies-count');
+
+            toggleReplies.addEventListener('click', async () => {
+                if (repliesList.style.display === 'none') {
+                    // Load replies if not already loaded
+                    if (repliesList.innerHTML === '') {
+                        try {
+                            const response = await fetch(`/Profile/GetReplies?commentId=${commentId}`);
+                            const replies = await response.json();
+
+                            // Update the count
+                            if (repliesCount) {
+                                repliesCount.textContent = `${replies.length} ответов`;
+                            }
+
+                            // Render the replies (pass parent comment for @mentions)
+                            renderComments(replies, repliesList, false, commentElement);
+                        } catch (error) {
+                            console.error('Error loading replies:', error);
+                            repliesList.innerHTML = `<div class="error">Ошибка загрузки ответов</div>`;
+                        }
+                    }
+                    repliesList.style.display = 'block';
+                    if (toggleIcon) {
+                        toggleIcon.src = '/img/Chevron up.png';
+                    }
+                } else {
+                    repliesList.style.display = 'none';
+                    if (toggleIcon) {
+                        toggleIcon.src = '/img/Chevron down.png';
+                    }
+                }
+            });
+        }
     }
 
     function showError(container, message) {
@@ -199,6 +361,8 @@
             const toggleComments = postElement.querySelector('.toggle-comments');
 
             let commentsLoaded = false;
+
+            commentsList.dataset.postId = postId;
 
             toggleComments.addEventListener('click', async function () {
                 const isActive = commentsSection.style.display === 'block';
