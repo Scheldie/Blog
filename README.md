@@ -49,20 +49,20 @@
 
 ### Установка и запуск
 
-    Клонируйте репозиторий:
+**Клонируйте репозиторий:**
 
 ```bash
 
 git clone https://github.com/yourusername/blog-platform.git
 cd blog-platform
 ```
-    Запустите приложение с помощью Docker Compose:
+**Запустите приложение с помощью Docker Compose:**
 
 ```bash
 
 docker-compose up --build
 ```
-    Приложение будет доступно по адресу:
+**Приложение будет доступно по адресу:**
 
 ```text
 
@@ -128,7 +128,7 @@ Blog/
 
 Этот проект распространяется под лицензией MIT. Подробнее см. в файле LICENSE.
 
-Автор: [Scheldie]
+Автор: [Scheldie]https://github.com/Scheldie
 Версия: 1.0.0
 Дата: 2025
 
