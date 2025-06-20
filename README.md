@@ -53,8 +53,8 @@
 
 ```bash
 
-git clone https://github.com/yourusername/blog-platform.git
-cd blog-platform
+git clone https://github.com/Scheldie/Blog.git
+cd Blog
 ```
 **Запустите приложение с помощью Docker Compose:**
 
