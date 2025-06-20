@@ -1,0 +1,136 @@
+﻿@{
+    ViewData["Title"] = "Лента публикаций";
+}
+
+@model IEnumerable<Blog.Models.Post.PostModel>
+
+<!Doctype html>
+<html lang="Russian">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="index-header">
+            <ul class="header">
+                <li><a asp-controller="Profile" asp-action="Feed"><img src="~/img/blog.png" class="logo"></a></li>
+                <li class="search-container">
+                    <input type="text" id="userSearch" placeholder="Поиск пользователей..." autocomplete="off">
+                    <div id="searchResults" class="search-results-dropdown">
+                        <div id="searchResultsList"></div>
+                        <div class="show-all-results" id="showAllResults">Показать все результаты</div>
+                    </div>
+                </li>
+                <li class="profile-icon-li">
+                    <a asp-controller="Profile" asp-action="Users" asp-route-id="0">
+                        <img src="~/img/profile.png" class="profile-icon">
+                    </a>
+                </li>
+                <li class="log-out-li"><a asp-controller="Profile" asp-action="Logout"><img src="~/img/Log out.png" class="log-out-icon"></a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section>
+        <div class="container">
+            <main role="main" class="pb-3">
+                <div class="publication-container" id="posts-container">
+                    @foreach (var post in Model.OrderByDescending(p => p.CreatedAt))
+                    {
+                        <div class="publication" data-post-id="@post.Id">
+                            <div class="publication-header">
+                                <div class="publication-user-info">
+                                    <a asp-controller="Profile" asp-action="Users" asp-route-id="@post.User.Id">
+                                        <img src="@(post.User.AvatarPath ?? "~/img/profile.png")" class="publication-avatar">
+                                    </a>
+                                    <a asp-controller="Profile" asp-action="Users" asp-route-id="@post.User.Id" class="publication-user-name">@post.User.UserName</a>
+                                </div>
+                                <p class="publication-date">@post.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
+                                @if (post.IsCurrentUser)
+                                {
+                                    <div class="edit-icon-container">
+                                        <img src="~/img/edit-icon.png" data-post-id="@post.Id" class="edit-icon" alt="Редактировать">
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="publication-content">
+                                @if (!string.IsNullOrEmpty(post.Title))
+                                {
+                                    <h2 class="publication-title">@post.Title</h2>
+                                }
+
+                                @{
+                                    var imageCount = post.Post_Images?.Count() ?? 0;
+                                    var containerClass = imageCount switch
+                                    {
+                                        1 => "post-images-container single-image",
+                                        2 => "post-images-container double-image",
+                                        _ => "post-images-container multiple-image"
+                                    };
+                                }
+
+                                <div class="@containerClass">
+                                    @if (post.Post_Images?.Any() == true)
+                                    {
+                                        @foreach (var postImage in post.Post_Images!)
+                                        {
+                                            @if (postImage.Image?.Path != null)
+                                            {
+                                                <div class="post-image-item">
+                                                    <img src="@Url.Content(postImage.Image.Path)"
+                                                         alt="Изображение поста"
+                                                         class="post-image">
+                                                </div>
+                                            }
+                                        }
+                                    }
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(post.Description))
+                                {
+                                    <h3 class="publication-description">@post.Description</h3>
+                                }
+                            </div>
+
+                            <div class="post-bottom">
+                                <div class="comments-toggle">
+                                    <img src="~/img/Chevron down.png" class="toggle-comments">
+                                    <span class="comment-count">@(post.Comments?.Count() ?? 0)</span>
+                                </div>
+                                <div class="like-section" data-post-id="@post.Id">
+                                    @Html.AntiForgeryToken()
+                                    <img src="~/img/@((post.Post_Likes?.Any(l => l.Like.User.Id == post.WatcherId) == true) ? "Heart Active.png" : "Heart.png")"
+                                         class="like-icon @((post.Post_Likes?.Any(l => l.Like.UserId == post.WatcherId) == true) ? "active" : "")">
+                                    <span class="like-count">@(post.Post_Likes?.Count() ?? 0)</span>
+                                </div>
+                            </div>
+                            <div class="comments-section">
+                                <h3 class="comment-header">Комментарии:</h3>
+                                <div class="comments-list">
+                                    <!-- Комментарии будут загружаться динамически -->
+                                </div>
+                                <textarea class="comment-area" placeholder="Введите ваш комментарий"></textarea>
+                                <button class="add-comment">Добавить комментарий</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </main>
+        </div>
+    </section>
+
+    @section Scripts {
+        <script>
+            var currentUserId = '@User';
+        </script>
+        <script src="~/js/search.js"></script>
+        <script src="~/js/feed.js"></script>
+        <script type="module" src="~/js/main.js"></script>
+        <script src="~/js/gallery.js"></script>
+    }
+</body>
+</html>

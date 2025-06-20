@@ -1885,7 +1885,7 @@ body {
 .search-container {
     position: relative;
     margin: 0 20px;
-    margin-left: auto;
+    margin-left: auto
 }
 
 #userSearch {
@@ -1965,3 +1965,8 @@ body {
     .show-all-results:hover {
         background-color: #e5e5e5;
     }
+
+.comment-username{
+    text-decoration: none;
+    color: black;
+}

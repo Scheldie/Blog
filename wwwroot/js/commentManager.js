@@ -58,9 +58,10 @@
 
             commentElement.innerHTML = `
             <div class="comment-header">
-                <img src="${comment.user.avatarPath || '/default-avatar.png'}" class="comment-avatar" 
-                     alt="${comment.user.userName}">
-                <span class="username">${comment.user.userName}</span>
+                <a href="/Profile/Users/${comment.user.id}">
+                    <img src="${comment.user.avatarPath || '/img/default-avatar.png'}" class="comment-avatar">
+                </a>
+                <a href="/Profile/Users/${comment.user.id}" class="comment-username">${comment.user.userName}</a>
                 ${replyToSection}
                 <span class="date">${comment.createdAt}</span>
                 ${comment.isCurrentUser ? `

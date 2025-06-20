@@ -18,7 +18,7 @@
     <header>
         <nav class="index-header">
             <ul class="header">
-                <li><a asp-controller="Home" asp-action="Index"><img src="~/img/blog.png" class="logo"></a></li>
+                <li><a asp-controller="Profile" asp-action="Feed"><img src="~/img/blog.png" class="logo"></a></li>
                 <li class="search-container">
                     <input type="text" id="userSearch" placeholder="Поиск пользователей..." autocomplete="off">
                     <div id="searchResults" class="search-results-dropdown">
@@ -163,8 +163,10 @@
                     <div class="publication" data-post-id="@post.Id">
                         <div class="publication-header">
                             <div class="publication-user-info">
-                                <img src="@(Model.AvatarPath ?? "~/img/profile.png")" class="publication-avatar">
-                                <p class="publication-user-name">@Model.UserName</p>
+                                <a asp-controller="Profile" asp-action="Users" asp-route-id="@Model.Id">
+                                    <img src="@(Model.AvatarPath ?? "~/img/profile.png")" class="publication-avatar">
+                                </a>
+                                <a asp-controller="Profile" asp-action="Users" asp-route-id="@Model.Id" class="publication-user-name">@Model.UserName</a>
                             </div>
                             <p class="publication-date">@post.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
                             @if (Model.IsCurrentUser)

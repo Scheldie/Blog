@@ -60,6 +60,44 @@ namespace Blog.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Feed()
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var user = await _context.Users.FindAsync(userId);
+            // Получаем посты от всех пользователей (или только от подписок, если у вас есть система подписок)
+            var posts = await _context.Posts
+                .Include(p => p.Author)
+                .Include(p => p.Post_Images)
+                    .ThenInclude(pi => pi.Image)
+                .Include(p => p.Post_Likes)
+                    .ThenInclude(pl => pl.Like)
+                        .ThenInclude(l => l.User)
+                .Include(p => p.Comments)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+
+            var model = posts.Select(post => new PostModel
+            {
+                Id = post.Id,
+                Title = post.Title,
+                Description = post.Description,
+                Post_Images = post.Post_Images,
+                CreatedAt = post.CreatedAt,
+                UpdatedAt = post.UpdatedAt,
+                ImagesCount = post.ImagesCount,
+                ViewCount = post.ViewCount,
+                Comments = post.Comments,
+                Post_Likes = post.Post_Likes,
+                IsLiked = post.Post_Likes.Any(pl => pl.Like.User.Id == userId),
+                User = post.Author,
+                WatcherId = userId,
+                IsCurrentUser = post.Author.Id == userId
+            }).ToList();
+
+            return View(model);
+        }
+
         public async Task<IActionResult> Users(int id = 0, string? username = null)
         {
             // Если id не указан (равен 0) - показываем профиль текущего пользователя
@@ -514,7 +552,7 @@ namespace Blog.Controllers
                             r.Id,
                             User = new
                             {
-                                r.UserId,
+                                Id = r.UserId,
                                 UserName = r.User.UserName,
                                 r.User.AvatarPath
                             },

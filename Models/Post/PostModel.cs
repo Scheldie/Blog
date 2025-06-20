@@ -35,6 +35,14 @@ namespace Blog.Models.Post
 
         public int ViewCount { get; set; }
 
+        public virtual User User { get; set; }
+
+        public int UserId { get; set; }
+        
+        public bool IsCurrentUser { get; set; }
+
+        public int WatcherId { get; set; }
+
         public bool IsLiked { get; set; }
     }
 }
