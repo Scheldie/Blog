@@ -18,6 +18,7 @@ using Microsoft.Extensions.Hosting;
 using Blog.Services;
 using Microsoft.AspNetCore.Identity;
 using Blog.Entities.Enums;
+using Microsoft.AspNetCore.Authentication;
 
 namespace Blog.Controllers
 {
@@ -46,6 +47,13 @@ namespace Blog.Controllers
             _imageRepository = imageRepository;
             _postImageRepository = postImageRepository;
             _fileService = fileService;
+        }
+
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Index", "Home");
         }
 
         public async Task<IActionResult> Users(int id = 0, string? username = null)
@@ -100,6 +108,7 @@ namespace Blog.Controllers
 
         private async Task<IActionResult> GetUserProfile(User user, bool isCurrentUser)
         {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             var posts = await _context.Posts
                 .Include(p => p.Post_Images)
                 .ThenInclude(pi => pi.Image)
@@ -115,6 +124,7 @@ namespace Blog.Controllers
                 Bio = user.Bio,
                 AvatarPath = user.AvatarPath,
                 IsCurrentUser = isCurrentUser,
+                WatcherId = userId,
                 Posts = posts.Select(post => new PostModel
                 {
                     Id = post.Id,
@@ -487,10 +497,13 @@ namespace Blog.Controllers
                         c.Text,
                         c.PostId,
                         c.ParentId,
+                        c.ReplyTo,
+                        ReplyToId = c.ReplyTo,
                         CreatedAt = c.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
                         LikesCount = c.Comment_Likes.Count(),
                         IsLiked = userIdInt > 0 && c.Comment_Likes.Any(l => l.Like.UserId == userIdInt),
-                        IsCurrentUser = c.User.Id == userIdInt,
+                        IsCurrentUser = c.User.Id == userIdInt && c.UserId == userIdInt,
+                        IsReply = false,
                         Replies = c.Replies.Select(r => new
                         {
                             r.Id,
@@ -503,10 +516,14 @@ namespace Blog.Controllers
                             r.Text,
                             r.PostId,
                             r.ParentId,
+                            IsReply = true,
+                            
+                            ReplyToId = r.ReplyTo,
+                            ReplyToUser = _context.Comments.FirstOrDefault(c=>c.Id == r.ReplyTo).User.UserName,
                             LikesCount = r.Comment_Likes.Count(),
                             IsLiked = userIdInt > 0 && r.Comment_Likes.Any(l => l.Like.UserId == userIdInt),
                             CreatedAt = r.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
-                            IsCurrentUser = c.User.Id == userIdInt
+                            IsCurrentUser = r.User.Id == userIdInt
                         })
                     })
                     .ToListAsync();
@@ -530,19 +547,26 @@ namespace Blog.Controllers
                 if (user == null) return Unauthorized();
 
                 int? rootParentId = null;
-                bool isReplyToReply = false;
+                int? replyToId = null;
+                string replyToUsername = null;
 
                 if (dto.ParentId.HasValue)
                 {
                     var parentComment = await _context.Comments
+                        .Include(c => c.User)
                         .FirstOrDefaultAsync(c => c.Id == dto.ParentId.Value);
 
                     if (parentComment == null) return BadRequest("Parent comment not found");
 
-                    // Определяем корневой комментарий
+                    // Root parent всегда будет самым верхним комментарием в цепочке
                     rootParentId = parentComment.ParentId ?? dto.ParentId;
-                    // Это ответ на ответ, если у родителя есть ParentId
-                    isReplyToReply = parentComment.ParentId.HasValue;
+
+                    // ReplyToId - это ID комментария, на который непосредственно отвечаем
+                    replyToId = dto.ParentId;
+
+                    // Получаем username автора комментария, на который отвечаем
+                    replyToUsername = parentComment.User.UserName;
+
                     dto.PostId = parentComment.PostId;
                 }
 
@@ -550,14 +574,15 @@ namespace Blog.Controllers
                 {
                     Text = dto.Text.Trim(),
                     PostId = dto.PostId,
-                    ParentId = rootParentId, // Всегда храним корневой ParentId
+                    ParentId = rootParentId,  // Всегда указывает на корневой комментарий
+                    ReplyTo = replyToId,   // Указывает на непосредственный комментарий-ответ
                     UserId = user.Id,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
                 };
 
                 _context.Comments.Add(comment);
                 await _context.SaveChangesAsync();
-
+                var replyToUser = _context.Comments?.FirstOrDefaultAsync(c => c.Id == comment.ReplyTo)?.Result?.User?.UserName;
                 return Ok(new
                 {
                     success = true,
@@ -565,10 +590,10 @@ namespace Blog.Controllers
                     User = new { user.Id, user.UserName, user.AvatarPath },
                     comment.Text,
                     CreatedAt = comment.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
-                    rootParentId,
-                    isReplyToReply
+                    ParentId = comment.ParentId,
+                    ReplyToId = comment.ReplyTo,
+                    ReplyToUser = replyToUser,
                 });
-
             }
             catch (Exception ex)
             {
@@ -711,7 +736,9 @@ namespace Blog.Controllers
                         CreatedAt = c.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
                         LikesCount = c.Comment_Likes.Count(),
                         IsLiked = userIdInt > 0 && c.Comment_Likes.Any(l => l.Like.UserId == userIdInt),
-                        IsCurrentUser = c.User.Id == userIdInt,
+                        IsCurrentUser = c.User.Id == userIdInt && c.UserId == userIdInt,
+                        IsReply = true,
+                        ParentId = c.ParentId
 
                     })
                     .ToListAsync();

@@ -20,7 +20,7 @@
             <ul class="header">
                 <li><a asp-controller="Home" asp-action="Index"><img src="~/img/blog.png" class="logo"></a></li>
                 <li class="profile-icon-li"><a asp-controller="Profile" asp-action="Users" asp-route-userId="@Model.Id"><img src="~/img/profile.png" class="profile-icon"></a></li>
-                <li class="log-out-li"><a asp-controller="Account" asp-action="Logout"><img src="~/img/Log out.png" class="log-out-icon"></a></li>
+                <li class="log-out-li"><a asp-controller="Profile" asp-action="Logout"><img src="~/img/Log out.png" class="log-out-icon"></a></li>
             </ul>
         </nav>
     </header>
@@ -210,35 +210,15 @@
                             </div>
                             <div class="like-section" data-post-id="@post.Id">
                                 @Html.AntiForgeryToken()
-                                <img src="~/img/@((post.Post_Likes?.Any(l => l.Like.User.Id == Model.Id) == true) ? "Heart Active.png" : "Heart.png")"
-                                     class="like-icon @((post.Post_Likes?.Any(l => l.Like.UserId == Model.Id) == true) ? "active" : "")">
+                                <img src="~/img/@((post.Post_Likes?.Any(l => l.Like.User.Id == Model.WatcherId) == true) ? "Heart Active.png" : "Heart.png")"
+                                     class="like-icon @((post.Post_Likes?.Any(l => l.Like.UserId == Model.WatcherId) == true) ? "active" : "")">
                                 <span class="like-count">@(post.Post_Likes?.Count() ?? 0)</span>
                             </div>
                         </div>
                         <div class="comments-section">
                             <h3 class="comment-header">Комментарии:</h3>
                             <div class="comments-list">
-                                @foreach (var comment in post.Comments.OrderByDescending(p => p.CreatedAt))
-                                {
-                                    <div class="comment" data-id="@comment.Id" data-user-id="@comment.User.Id">
-                                        <div class="comment-header">
-                                            <img src="@(comment.User.AvatarPath ?? "/img/profile.png")" class="comment-avatar">
-                                            <span class="username">@comment.User.UserName</span>
-                                            <span class="date">@comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
-                                            @if (comment.User.Id == Model.Id)
-                                            {
-                                                <div class="comment-actions-menu">
-                                                    <button class="edit-comment-btn" data-comment-id="@comment.Id">
-                                                        <img src="/img/edit-icon.png" alt="Редактировать" width="16">
-                                                    </button>
-                                                    <button class="delete-comment-btn" data-comment-id="@comment.Id">
-                                                        <img src="/img/delete-icon.png" alt="Удалить" width="16">
-                                                    </button>
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-                                }
+                                
                             </div>
                             <textarea class="comment-area" placeholder="Введите ваш комментарий"></textarea>
                             <button class="add-comment">Добавить комментарий</button>

@@ -24,7 +24,6 @@ export function initModalManager() {
         document.getElementById('edit-description').value = postData.description || '';
         document.getElementById('edit-post-id').value = postData.postId || '';
 
-        console.log(postData.postId, postData.title, postData.description);
         const imageInput = document.getElementById('edit-image-input');
         if (imageInput) {
             imageInput.addEventListener('change', function (e) {
@@ -59,9 +58,7 @@ export function initModalManager() {
             previewContainer.appendChild(imgElement);
 
         });
-        if (!imageInput || !previewContainer) {
-            console.log('это imageInput или preview');
-        }
+
         previewContainer.addEventListener('click', function (e) {
             if (e.target.classList.contains('remove-image-btn')) {
                 e.preventDefault();
@@ -135,7 +132,6 @@ export function initModalManager() {
                 } else {
                     formData.append('DeleteExistingImages', 'false');
                 }
-                console.log('Deleting images:', currentPostData.deletedFilesPaths);
 
                 // Новые изображения
                 const imageInput = document.getElementById('edit-image-input');

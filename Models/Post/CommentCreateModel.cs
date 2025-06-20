@@ -12,5 +12,8 @@ namespace Blog.Models.Post
         public string Text { get; set; }
 
         public int? ParentId { get; set; }
+
+        public int? ReplyTo {  get; set; }
+
     }
 }

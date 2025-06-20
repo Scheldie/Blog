@@ -20,6 +20,8 @@ namespace Blog.Entities
 
         public virtual Comment Parent { get; set; }
 
+        public int? ReplyTo { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }

@@ -24,27 +24,44 @@
     }
 
     function renderComments(comments, container, isTopLevel = true, parentComment = null) {
-        // Clear existing content only for top-level containers
         if (isTopLevel) {
             container.innerHTML = '';
         }
 
         comments.forEach(comment => {
+            const isReply = comment.isReply || (comment.ParentId !== null && comment.ParentId !== undefined);
             const commentElement = document.createElement('div');
             commentElement.className = 'comment';
             commentElement.dataset.id = comment.id;
             commentElement.dataset.userId = comment.user.id;
+            commentElement.dataset.isReply = isReply;
+            commentElement.dataset.parentId = comment.parentId;
+            commentElement.dataset.replyToId = comment.replyToId;
 
-            const parentUsername = parentComment ?
-                parentComment.querySelector('.username').textContent :
-                null;
+            // Для ответов показываем @username автора комментария, на который отвечаем
+            const replyToSection = comment.replyToId !== null ?
+                `<span class="reply-to">@${comment.replyToUser}</span>` :
+                '';
+
+            let repliesSection = '';
+            if (!comment.isReply) {
+                repliesSection = `
+                <div class="replies-container">
+                    <div class="toggle-replies" data-comment-id="${comment.id}">
+                        <img src="/img/Chevron down.png" class="toggle-icon">
+                        <span class="replies-count">${comment.replies?.length || 0} ответов</span>
+                    </div>
+                    <div class="replies-list" style="display: none;"></div>
+                </div>
+            `;
+            }
 
             commentElement.innerHTML = `
             <div class="comment-header">
                 <img src="${comment.user.avatarPath || '/default-avatar.png'}" class="comment-avatar" 
                      alt="${comment.user.userName}">
                 <span class="username">${comment.user.userName}</span>
-                ${parentUsername ? `<span class="reply-to">@${parentUsername}</span>` : ''}
+                ${replyToSection}
                 <span class="date">${comment.createdAt}</span>
                 ${comment.isCurrentUser ? `
                     <div class="comment-actions-menu">
@@ -64,15 +81,7 @@
                 </button>
                 <button class="reply-btn">Ответить</button>
             </div>
-            
-            <div class="replies-container">
-                <div class="toggle-replies" data-comment-id="${comment.id}">
-                    <img src="/img/Chevron down.png" class="toggle-icon">
-                    <span class="replies-count">${comment.replies?.length || 0} ответов</span>
-                </div>
-                <div class="replies-list" style="display: none;"></div>
-            </div>
-            
+            ${repliesSection}
             <div class="reply-form" style="display: none;">
                 <textarea class="reply-textarea" placeholder="Ваш ответ..."></textarea>
                 <div class="reply-form-actions">
@@ -80,7 +89,6 @@
                     <button class="cancel-reply">Отмена</button>
                 </div>
             </div>
-            
             <div class="edit-form" style="display: none;">
                 <textarea class="edit-textarea" data-comment-id="${comment.id}">${comment.text}</textarea>
                 <div class="edit-form-actions">
@@ -93,8 +101,7 @@
             container.appendChild(commentElement);
             setupCommentEvents(commentElement, container.dataset.postId);
 
-            // Initialize replies list if replies exist
-            if (comment.replies && comment.replies.length > 0) {
+            if (!comment.isReply && comment.replies && comment.replies.length > 0) {
                 const repliesList = commentElement.querySelector('.replies-list');
                 renderComments(comment.replies, repliesList, false, commentElement);
             }
@@ -171,12 +178,32 @@
                 if (parentComment) {
                     const repliesList = parentComment.querySelector('.replies-list');
                     if (repliesList) {
-                        const repliesResponse = await fetch(`/Profile/GetReplies?commentId=${parentId}`);
-                        const replies = await repliesResponse.json();
-                        renderComments(replies, repliesList);
+                        // Очищаем контейнер перед загрузкой новых данных
+                        repliesList.innerHTML = '';
+
+                        // Загружаем свежий список ответов с сервера
+                        const response = await fetch(`/Profile/GetReplies?commentId=${parentId}`);
+                        const replies = await response.json();
+
+                        // Рендерим ответы
+                        renderComments(replies, repliesList, false, parentComment);
+
+                        // Обновляем счетчик
+                        const repliesCount = parentComment.querySelector('.replies-count');
+                        if (repliesCount) {
+                            repliesCount.textContent = `${replies.length} ответов`;
+                        }
+
+                        // Показываем список ответов, если он был скрыт
+                        repliesList.style.display = 'block';
+                        const toggleIcon = parentComment.querySelector('.toggle-icon');
+                        if (toggleIcon) {
+                            toggleIcon.src = '/img/Chevron up.png';
+                        }
                     }
                 }
             } else {
+                // Для корневых комментариев перезагружаем весь список
                 await loadComments(postId, commentsContainer);
             }
 
@@ -220,32 +247,11 @@
                         commentId
                     );
 
-                    // Refresh the replies list after successful submission
-                    const repliesList = commentElement.querySelector('.replies-list');
-                    if (repliesList) {
-                        const response = await fetch(`/Profile/GetReplies?commentId=${commentId}`);
-                        const replies = await response.json();
-                        renderComments(replies, repliesList, false, commentElement);
-
-                        // Show the replies list if it was hidden
-                        repliesList.style.display = 'block';
-                        const toggleIcon = commentElement.querySelector('.toggle-icon');
-                        if (toggleIcon) {
-                            toggleIcon.src = '/img/Chevron up.png';
-                        }
-
-                        // Update replies count
-                        const repliesCount = commentElement.querySelector('.replies-count');
-                        if (repliesCount) {
-                            repliesCount.textContent = `${replies.length} ответов`;
-                        }
-                    }
-
                     replyForm.style.display = 'none';
                     replyTextarea.value = '';
                 } catch (error) {
                     console.error('Error submitting reply:', error);
-                    // Show error message to user
+                    // Показать сообщение об ошибке пользователю
                 }
             });
         }

@@ -128,12 +128,6 @@ namespace Blog.Controllers
             }
             return View(signUpModel);
         }
-        [Authorize]
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Index", "Home");
-        }
         private async Task Authenticate(string email)
         {
             var claims = new List<Claim>

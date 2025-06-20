@@ -33,6 +33,10 @@ namespace Blog.Models.Account
         public bool IsActive { get; set; }
 
         public bool IsCurrentUser {  get; set; }
+        
+        [NotMapped]
+        [Display(Name = "Watcher")]
+        public int WatcherId { get; set; }
 
         public virtual IEnumerable<PostModel> Posts { get; set; }
 

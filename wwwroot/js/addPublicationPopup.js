@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM fully loaded'); // Отладочное сообщение
     
     // Элементы
     const addBtn = document.getElementById('add-publication-button');
@@ -26,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
     popup.addEventListener('click', (e) => e.target === popup && hidePopup());
 
     imageInput.addEventListener('change', function(e) {
-        console.log('Files selected:', this.files); // Отладочный вывод
         
         imagesPreview.innerHTML = '';
         
@@ -35,28 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
             this.value = '';
             return;
         }
-
-        Array.from(this.files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                
-                imgContainer.querySelector('.remove-image').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    imgContainer.remove();
-                    
-                    // Обновляем input files
-                    const dataTransfer = new DataTransfer();
-                    Array.from(imageInput.files)
-                        .filter(f => f !== file)
-                        .forEach(f => dataTransfer.items.add(f));
-                    
-                    imageInput.files = dataTransfer.files;
-                });
-                
-                imagesPreview.appendChild(imgContainer);
-            };
-            reader.readAsDataURL(file);
-        });
     });
 
     

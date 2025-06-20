@@ -1,5 +1,4 @@
 export function initLikeManager() {
-    console.log('LikeManager initialized');
 
     // Функция для инициализации состояния лайков
     function initializeLikes() {

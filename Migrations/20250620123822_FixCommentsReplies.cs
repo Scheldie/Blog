@@ -5,38 +5,35 @@
 namespace Blog.Migrations
 {
     /// <inheritdoc />
-    public partial class ChangeTablesNavigation : Migration
+    public partial class FixCommentsReplies : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-
-
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Comments_ParentId",
+            migrationBuilder.AddColumn<int>(
+                name: "ReplyTo",
                 table: "Comments",
-                column: "ParentId");
-
+                nullable: true
+            );
             migrationBuilder.AddForeignKey(
-                name: "FK_Comments_Comments_ParentId",
+                name: "FK_Comments_Comments_ReplyTo",
                 table: "Comments",
-                column: "ParentId",
+                column: "ReplyTo",
                 principalTable: "Comments",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
+                onDelete: ReferentialAction.Cascade
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Comments_Comments_ParentId",
+            migrationBuilder.DropColumn(
+                name: "ReplyTo",
                 table: "Comments"
             );
-            migrationBuilder.DropIndex(
-                name: "IX_Comments_ParentId",
+            migrationBuilder.DropForeignKey(
+                name: "FK_Comments_Comments_ReplyTo",
                 table: "Comments"
             );
         }
