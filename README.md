@@ -128,7 +128,7 @@ Blog/
 
 Этот проект распространяется под лицензией MIT. Подробнее см. в файле LICENSE.
 
-Автор: [Scheldie]https://github.com/Scheldie
+Автор: [Scheldie](https://github.com/Scheldie)
 Версия: 1.0.0
 Дата: 2025
 
