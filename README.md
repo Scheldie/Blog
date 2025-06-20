@@ -56,12 +56,14 @@
 git clone https://github.com/Scheldie/Blog.git
 cd Blog
 ```
-**Запустите приложение с помощью Docker Compose:**
+**Запустите контейнер с помощью Docker Compose:**
 
 ```bash
 
 docker-compose up --build
 ```
+После этого запустите приложение
+
 **Приложение будет доступно по адресу:**
 
 ```text
