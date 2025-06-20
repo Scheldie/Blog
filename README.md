@@ -96,6 +96,7 @@ Blog/
 ├── Entities/           # Сущности
 ├── Models/             # Модели
 ├── Services/           # Сервисы приложения
+├── Migrations/         # Миграции
 ├── Views/              # Представления Razor
 ├── wwwroot/            # Статические файлы
 └── Program.cs          # Точка входа
