@@ -1,0 +1,98 @@
+﻿@model List<Blog.Models.Account.UserSearchResultModel>
+@{
+    ViewData["Title"] = "Результаты поиска";
+}
+<link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+<body>
+    <header>
+        <nav class="index-header">
+            <ul class="header">
+                <li><a asp-controller="Home" asp-action="Index"><img src="~/img/blog.png" class="logo"></a></li>
+                <li class="profile-icon-li">
+                    <a asp-controller="Profile" asp-action="Users" asp-route-id="0">
+                        <img src="~/img/profile.png" class="profile-icon">
+                    </a>
+                </li>
+                <li class="log-out-li"><a asp-controller="Profile" asp-action="Logout"><img src="~/img/Log out.png" class="log-out-icon"></a></li>
+            </ul>
+        </nav>
+    </header>
+</body>
+<div class="search-results-container">
+    <h2>Результаты поиска: "@ViewBag.SearchQuery"</h2>
+
+    @if (Model.Any())
+    {
+        <div class="users-list">
+            @foreach (var user in Model)
+            {
+                <div class="user-card" onclick="window.location.href='@Url.Action("Users", "Profile", new { id = user.Id })'">
+                    <img src="@(user.AvatarPath ?? "/img/profile.png")" alt="@user.UserName" class="user-avatar">
+                    <div class="user-info">
+                        <h3>@user.UserName</h3>
+                        <div class="user-details">
+                            
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p>Ничего не найдено</p>
+    }
+</div>
+
+<style>
+    .search-results-container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+    }
+
+    .users-list {
+        margin-top: 20px;
+    }
+
+    .user-card {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+        .user-card:hover {
+            background-color: #f5f5f5;
+        }
+
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 15px;
+    }
+
+    .user-info {
+        flex: 1;
+    }
+
+    .user-details {
+        font-size: 14px;
+        color: #666;
+        margin-top: 5px;
+    }
+
+    .friend-badge {
+        background-color: #4a90e2;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 12px;
+        margin-right: 5px;
+    }
+</style>

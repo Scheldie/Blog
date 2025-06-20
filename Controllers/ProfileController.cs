@@ -52,6 +52,10 @@ namespace Blog.Controllers
         [Authorize]
         public async Task<IActionResult> Logout()
         {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var user = await _context.Users.FindAsync(userId);
+            user.IsActive = false;
+            _context.SaveChanges();
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index", "Home");
         }
@@ -125,6 +129,7 @@ namespace Blog.Controllers
                 AvatarPath = user.AvatarPath,
                 IsCurrentUser = isCurrentUser,
                 WatcherId = userId,
+                IsActive = user.IsActive,
                 Posts = posts.Select(post => new PostModel
                 {
                     Id = post.Id,
@@ -779,6 +784,64 @@ namespace Blog.Controllers
                 return StatusCode(500, new { error = "Failed to edit comment" });
             }
         }
-        
+        [HttpGet]
+        public async Task<IActionResult> SearchUsers(string query, int limit = 10)
+        {
+            if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
+            {
+                return BadRequest("Слишком короткий запрос");
+            }
+
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var currentUser = await _context.Users.FindAsync(int.Parse(currentUserId));
+
+            // Ищем пользователей, чьи имена содержат запрос (регистронезависимо)
+            var usersQuery = _context.Users
+                .Where(u => u.UserName.ToLower().Contains(query.ToLower()) && u.Id != currentUser.Id)
+                .Select(u => new UserSearchResultModel
+                {
+                    Id = u.Id,
+                    UserName = u.UserName,
+                    AvatarPath = u.AvatarPath,
+                })
+                .OrderBy(u => u.UserName);
+
+            if (limit > 0)
+            {
+                usersQuery = (IOrderedQueryable<UserSearchResultModel>)usersQuery.Take(limit);
+            }
+
+            var users = await usersQuery.ToListAsync();
+
+            return Ok(users);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchResults(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
+            {
+                return RedirectToAction("Users");
+            }
+
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var currentUser = await _context.Users.FindAsync(int.Parse(currentUserId));
+
+            var users = await _context.Users
+                .Where(u => u.UserName.ToLower().Contains(query.ToLower()) && u.Id != currentUser.Id)
+                .Select(u => new UserSearchResultModel
+                {
+                    Id = u.Id,
+                    UserName = u.UserName,
+                    AvatarPath = u.AvatarPath,
+                })
+                .OrderBy(u => u.UserName)
+                .ToListAsync();
+
+
+            ViewBag.SearchQuery = query;
+            return View(users);
+        }
+
     }
 } 

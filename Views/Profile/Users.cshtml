@@ -19,7 +19,18 @@
         <nav class="index-header">
             <ul class="header">
                 <li><a asp-controller="Home" asp-action="Index"><img src="~/img/blog.png" class="logo"></a></li>
-                <li class="profile-icon-li"><a asp-controller="Profile" asp-action="Users" asp-route-userId="@Model.Id"><img src="~/img/profile.png" class="profile-icon"></a></li>
+                <li class="search-container">
+                    <input type="text" id="userSearch" placeholder="Поиск пользователей..." autocomplete="off">
+                    <div id="searchResults" class="search-results-dropdown">
+                        <div id="searchResultsList"></div>
+                        <div class="show-all-results" id="showAllResults">Показать все результаты</div>
+                    </div>
+                </li>
+                <li class="profile-icon-li">
+                    <a asp-controller="Profile" asp-action="Users" asp-route-id="0">
+                        <img src="~/img/profile.png" class="profile-icon">
+                    </a>
+                </li>
                 <li class="log-out-li"><a asp-controller="Profile" asp-action="Logout"><img src="~/img/Log out.png" class="log-out-icon"></a></li>
             </ul>
         </nav>
@@ -282,6 +293,7 @@
             var currentUserId = '@Model.Id';
             var isCurrentUser = @Json.Serialize(Model.IsCurrentUser);
         </script>
+        <script src="~/js/search.js"></script>
         <script type="module" src="~/js/main.js"></script>
         <script src="~/js/editProfilePopup.js"></script>
         <script src="~/js/addPublicationPopup.js"></script>
