@@ -1,8 +1,8 @@
 📝 Blog Platform - ASP.NET Core MVC
 
-https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white
-https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white
-https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white
+[.Net]https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white
+[PostgreSql]https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white
+[Docker]https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white
 
 Современная платформа для ведения блога с полным набором социальных функций, построенная на ASP.NET Core MVC с использованием Entity Framework Core и PostgreSQL.
 🌟 Основные возможности
@@ -69,27 +69,27 @@ https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoC
 
     Клонируйте репозиторий:
 
-bash
+```bash
 
 git clone https://github.com/yourusername/blog-platform.git
 cd blog-platform
-
+```
     Запустите приложение с помощью Docker Compose:
 
-bash
+```bash
 
 docker-compose up --build
-
+```
     Приложение будет доступно по адресу:
 
-text
+```text
 
 https://localhost:7141
-
+```
 Конфигурация
 
 Настройки приложения можно изменить в файле appsettings.json:
-json
+```json
 
 {
   "ConnectionStrings": {
@@ -102,9 +102,9 @@ json
     }
   }
 }
-
+```
 📂 Структура проекта
-text
+```text
 
 Blog/
 ├── Controllers/        # Контроллеры MVC
@@ -115,7 +115,7 @@ Blog/
 ├── Views/              # Представления Razor
 ├── wwwroot/            # Статические файлы
 └── Program.cs          # Точка входа
-
+```
 🌍 Особенности архитектуры
 
     Чистая архитектура с разделением на слои
