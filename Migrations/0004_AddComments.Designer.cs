@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Blog.OldMigrations
+namespace Blog.Migrations
 {
     [DbContext(typeof(BlogDbContext))]
     [Migration("20250601092539_AddComments")]

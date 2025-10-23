@@ -3,7 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Blog.OldMigrations
+namespace Blog.Migrations
 {
     /// <inheritdoc />
     public partial class AddCommentLikes : Migration

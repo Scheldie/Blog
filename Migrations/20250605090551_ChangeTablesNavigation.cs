@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace Blog.OldMigrations
+namespace Blog.Migrations
 {
     /// <inheritdoc />
     public partial class ChangeTablesNavigation : Migration
