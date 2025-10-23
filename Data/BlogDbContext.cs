@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Blog.Models;
-using static System.Net.Mime.MediaTypeNames;
-using System.Data.Common;
-using Blog.Entities;
-using System.Reflection.Emit;
+﻿using Blog.Entities;
 using Blog.Entities.Enums;
+using Blog.Models;
 using Blog.Models.Account;
+using Microsoft.EntityFrameworkCore;
+using System.Data.Common;
+using System.Reflection.Emit;
+using System.Reflection.Metadata;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Blog.Data
 {
@@ -15,6 +16,10 @@ namespace Blog.Data
                 : base(options) {
             Database.EnsureCreated();
         }
+        public BlogDbContext()        
+        {
+
+        }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             var config = new ConfigurationBuilder()
@@ -22,14 +27,14 @@ namespace Blog.Data
                             .SetBasePath(Directory.GetCurrentDirectory())
                             .Build();
 
-            optionsBuilder.UseNpgsql(config.GetConnectionString("DefaultConnection"));
+            optionsBuilder.UseNpgsql("Host = localhost; Port = 5432; Database = migrations; Username = postgres; Password = 1");
         }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
         }
 
-        public DbSet<User> Users { get; set; } = null!;
+        public DbSet<User> Users { get; set; }
         public DbSet<Like> Likes { get; set; } = null!;
         public DbSet<Post> Posts { get; set; } = null!;
         public DbSet<Post_Image> Post_Images { get; set; } = null!;
@@ -38,10 +43,10 @@ namespace Blog.Data
         public DbSet<Post_View> Post_Views { get; set; } = null!;
         public DbSet<Follower> Followers { get; set; } = null!;
         public DbSet<Blog.Entities.Image> Images { get; set; } = null!;
-        public DbSet<Post_Like> Post_Likes { get; set; }
+        public DbSet<Post_Like> Post_Likes { get; set; } = null!;
 
-        public DbSet<Comment_Like> Comment_Likes { get; set; } 
-        
+        public DbSet<Comment_Like> Comment_Likes { get; set; } = null!;
+
 
 
 

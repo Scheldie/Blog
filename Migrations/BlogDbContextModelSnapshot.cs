@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Blog.Migrations
+namespace Blog.OldMigrations
 {
     [DbContext(typeof(BlogDbContext))]
     partial class BlogDbContextModelSnapshot : ModelSnapshot
@@ -18,9 +18,6 @@ namespace Blog.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.4")
-                .HasAnnotation("Proxies:ChangeTracking", false)
-                .HasAnnotation("Proxies:CheckEquality", false)
-                .HasAnnotation("Proxies:LazyLoading", true)
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -40,6 +37,9 @@ namespace Blog.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int>("PostId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ReplyTo")
                         .HasColumnType("integer");
 
                     b.Property<string>("Text")

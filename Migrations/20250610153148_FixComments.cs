@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace Blog.Migrations
+namespace Blog.OldMigrations
 {
     /// <inheritdoc />
     public partial class FixComments : Migration

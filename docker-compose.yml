@@ -1,39 +1,49 @@
 services:
-  postgres1:
-    image: postgis/postgis:latest
-    container_name: postgres_container
+  blog-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blog-service
+    hostname: blog-service
+    ports:
+      - "7141:7141"
     environment:
-      PGUSER: postgres
-      POSTGRES_PASSWORD: 123Admin456!
-      POSTGRES_DB: postgres
-      PGDATA: /var/lib/postgresql/data/pgdata
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:7141
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=123456
+      - ConnectionStrings__DefaultConnection=Server=blog-db;Port=5432;Database=blogdb;User Id=postgres;Password=1;
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx:ro
+    depends_on:
+      - blog-db
+    restart: on-failure:3
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  blog-db:
+    image: postgres:17
+    container_name: blog-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1
+      POSTGRES_DB: blogdb
     ports:
       - "5432:5432"
     volumes:
-      - ../Blog/Data/db:/var/lib/postgresql/data/pgdata
+      - blog_db_data:/var/lib/postgresql/data
+    restart: on-failure:3
     deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-    command: >
-      postgres -c max_connections=1000
-               -c shared_buffers=256MB
-               -c effective_cache_size=768MB
-               -c maintenance_work_mem=64MB
-               -c checkpoint_completion_target=0.7
-               -c wal_buffers=16MB
-               -c default_statistics_target=100
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    restart: unless-stopped
-    tty: true
-    stdin_open: true
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
 
-    
+
+volumes:
+  blog_db_data:
