@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Blog.Migrations
+namespace Blog.OldMigrations
 {
     /// <inheritdoc />
     public partial class UpdateSchemes : Migration
