@@ -13,10 +13,15 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Security.Claims;
+using Minio;
 
 var builder = WebApplication.CreateBuilder();
 
 var optionsBuilder = new DbContextOptionsBuilder<BlogDbContext>();
+var config = new ConfigurationBuilder()
+                            .AddJsonFile("appsettings.json")
+                            .SetBasePath(Directory.GetCurrentDirectory())
+                            .Build();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -51,6 +56,16 @@ builder.Services.AddScoped<IImageRepository, ImageRepository>();
 builder.Services.AddScoped<IPostImageRepository, PostImageRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<IFileService, FileService>();
+
+builder.Services.AddTransient<IMinioClient>(provider =>
+{
+    var client = new MinioClient()
+        .WithEndpoint(config.GetSection("Minio:endpoint").Value) 
+        .WithCredentials(config.GetSection("Minio:access-key").Value, config.GetSection("Minio:secret-key").Value)
+        .WithSSL() 
+        .Build();
+    return client;
+});
 
 builder.Services.AddCors(options =>
 {

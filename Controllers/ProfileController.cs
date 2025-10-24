@@ -24,22 +24,21 @@ namespace Blog.Controllers
         private readonly IImageRepository _imageRepository;
         private readonly IPostImageRepository _postImageRepository;
         private readonly IPostRepository _postRepository;
-        private readonly ILogger<ProfileController> _logger;
-        private readonly IFileService _fileService;
+        private readonly ILogger<ProfileController> logger;
+
 
         public ProfileController(BlogDbContext context, IWebHostEnvironment env, 
             IUserRepository userRepository, ILogger<ProfileController> logger,
             IPostRepository postRepository, IPostImageRepository postImageRepository,
-            IImageRepository imageRepository, IFileService fileService)
+            IImageRepository imageRepository)
         {
             _context = context;
             _env = env;
             _userRepository = userRepository;
-            _logger = logger;
+            this.logger = logger;
             _postRepository = postRepository;
             _imageRepository = imageRepository;
             _postImageRepository = postImageRepository;
-            _fileService = fileService;
         }
 
         [Authorize]
@@ -58,7 +57,6 @@ namespace Blog.Controllers
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             var user = await _context.Users.FindAsync(userId);
-            // Получаем посты от всех пользователей (или только от подписок, если у вас есть система подписок)
             var posts = await _context.Posts
                 .Include(p => p.Author)
                 .Include(p => p.Post_Images)
@@ -323,7 +321,7 @@ namespace Blog.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка при создании поста");
+                logger.LogError(ex, "Ошибка при создании поста");
                 return StatusCode(500, new
                 {
                     success = false,
@@ -342,8 +340,8 @@ namespace Blog.Controllers
                 return BadRequest(ModelState);
             }
 
-            _logger.LogInformation($"Editing post {model.Id}. DeleteExistingImages: {model.DeleteExistingImages}");
-            _logger.LogInformation($"Deleted files paths: {string.Join(", ", model.DeletedFilesPaths ?? new List<string>())}");
+            logger.LogInformation($"Editing post {model.Id}. DeleteExistingImages: {model.DeleteExistingImages}");
+            logger.LogInformation($"Deleted files paths: {string.Join(", ", model.DeletedFilesPaths ?? new List<string>())}");
 
             // Удаляем проверку ModelState для NewImageFiles
             ModelState.Remove("NewImageFiles");
@@ -430,35 +428,35 @@ namespace Blog.Controllers
             // Обработка удаленных изображений
             if (model.DeletedFilesPaths != null && model.DeletedFilesPaths.Any())
             {
-                _logger.LogInformation($"Processing {model.DeletedFilesPaths.Count} deleted images");
+                logger.LogInformation($"Processing {model.DeletedFilesPaths.Count} deleted images");
 
                 foreach (var filePath in model.DeletedFilesPaths)
                 {
-                    _logger.LogInformation($"Processing deletion for path: {filePath}");
+                    logger.LogInformation($"Processing deletion for path: {filePath}");
 
                     var postImage = post.Post_Images
                         .FirstOrDefault(pi => pi.Image.Path == filePath);
 
                     if (postImage != null)
                     {
-                        _logger.LogInformation($"Found image to delete: {postImage.Image.Path}");
+                        logger.LogInformation($"Found image to delete: {postImage.Image.Path}");
 
                         // Удаляем физический файл
                         var fullPath = Path.Combine(_env.WebRootPath, postImage.Image.Path.TrimStart('/'));
                         if (System.IO.File.Exists(fullPath))
                         {
                             System.IO.File.Delete(fullPath);
-                            _logger.LogInformation($"Deleted file from disk: {fullPath}");
+                            logger.LogInformation($"Deleted file from disk: {fullPath}");
                         }
 
                         // Удаляем записи из БД
                         _context.Post_Images.Remove(postImage);
                         _context.Images.Remove(postImage.Image);
-                        _logger.LogInformation($"Removed image from database: {postImage.Image.Id}");
+                        logger.LogInformation($"Removed image from database: {postImage.Image.Id}");
                     }
                     else
                     {
-                        _logger.LogWarning($"Image not found for path: {filePath}");
+                        logger.LogWarning($"Image not found for path: {filePath}");
                     }
                 }
             }
@@ -594,7 +592,7 @@ namespace Blog.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error toggling like");
+                logger.LogError(ex, "Error toggling like");
                 return StatusCode(500, new { error = "Failed to toggle like" });
             }
         }

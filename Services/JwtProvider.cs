@@ -8,6 +8,10 @@ using System.Text;
 
 namespace Blog.Services
 {
+    public interface IJwtProvider
+    {
+        public string GenerateToken(User user);
+    }
     public class JwtProvider : IJwtProvider
     {
         private readonly JwtOptions _options;

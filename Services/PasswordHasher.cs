@@ -1,5 +1,10 @@
 ﻿namespace Blog.Services
 {
+    public interface IPasswordHasher
+    {
+        string Generate(string password);
+        bool Verify(string password, string hash);
+    }
     public class PasswordHasher : IPasswordHasher
     {
         public string Generate(string password)
