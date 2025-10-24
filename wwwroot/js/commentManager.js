@@ -3,7 +3,7 @@
 
     async function loadComments(postId, container) {
         try {
-            const response = await fetch(`/Profile/GetComments?postId=${postId}`);
+            const response = await fetch(`/Comment/GetComments?postId=${postId}`);
             if (!response.ok) throw new Error('Network response was not ok');
 
             const data = await response.json();
@@ -111,7 +111,7 @@
 
     async function deleteComment(commentId) {
         try {
-            const response = await fetch(`/Profile/DeleteComment?commentId=${commentId}`, {
+            const response = await fetch(`/Comment/DeleteComment?commentId=${commentId}`, {
                 method: 'POST',
                 headers: {
                     'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
@@ -130,7 +130,7 @@
 
     async function editComment(commentId, newText) {
         try {
-            const response = await fetch(`/Profile/EditComment`, {
+            const response = await fetch(`/Comment/EditComment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -154,7 +154,7 @@
 
     async function addComment(postId, text, commentsContainer, parentId = null) {
         try {
-            const response = await fetch('/Profile/AddComment', {
+            const response = await fetch('/Comment/AddComment', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -11,8 +11,8 @@ using Blog.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Blog.Entities;
 using Blog.Data;
-using Blog.Models.Account;
 using Microsoft.AspNetCore.Authorization;
+using Blog.Models;
 
 namespace Blog.Controllers
 {

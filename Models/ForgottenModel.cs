@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Blog.Models.Account
+namespace Blog.Models
 {
     public class ForgottenModel
     {

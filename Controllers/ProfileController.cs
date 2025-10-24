@@ -1,24 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Blog.Data;
-using Blog.Models.Account;
 using Microsoft.AspNetCore.Authorization;
 using Blog.Entities;
-using Blog.Data.Repositories;
 using Blog.Data.Interfaces;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Blog.Models.Post;
-using Microsoft.Extensions.Hosting;
 using Blog.Services;
-using Microsoft.AspNetCore.Identity;
 using Blog.Entities.Enums;
 using Microsoft.AspNetCore.Authentication;
+
+using Blog.Models;
+using Blog.Models.Request;
 
 namespace Blog.Controllers
 {
@@ -158,7 +151,7 @@ namespace Blog.Controllers
                 .Where(p => p.UserId == user.Id)
                 .ToListAsync();
 
-            var model = new ProfileModel
+            var model = new ProfileRequest
             {
                 Id = user.Id,
                 UserName = user.UserName,
@@ -189,7 +182,7 @@ namespace Blog.Controllers
 
         // POST: Profile/EditProfile
         [HttpPost]
-        public async Task<IActionResult> EditProfile(ProfileEditModel model)
+        public async Task<IActionResult> EditProfile(ProfileRequest model)
         {
             if (!ModelState.IsValid)
             {
@@ -245,7 +238,7 @@ namespace Blog.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost([FromForm] PostCreateModel model)
+        public async Task<IActionResult> CreatePost([FromForm] PostModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -276,7 +269,7 @@ namespace Blog.Controllers
                 await _context.SaveChangesAsync(); // Сохраняем, чтобы получить ID
 
                 // 2. Обрабатываем изображения
-                if (model.ImageFiles == null || model.ImageFiles.Count == 0)
+                if (model.ImageFiles == null || model.ImageFiles.Count() == 0)
                 {
                     return BadRequest("Необходимо загрузить хотя бы одно изображение");
                 }
@@ -342,14 +335,14 @@ namespace Blog.Controllers
 
         // POST: Profile/EditPost
         [HttpPost]
-        public async Task<IActionResult> EditPost([FromForm] PostEditModel model)
+        public async Task<IActionResult> EditPost([FromForm] PostModel model)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            _logger.LogInformation($"Editing post {model.PostId}. DeleteExistingImages: {model.DeleteExistingImages}");
+            _logger.LogInformation($"Editing post {model.Id}. DeleteExistingImages: {model.DeleteExistingImages}");
             _logger.LogInformation($"Deleted files paths: {string.Join(", ", model.DeletedFilesPaths ?? new List<string>())}");
 
             // Удаляем проверку ModelState для NewImageFiles
@@ -368,7 +361,7 @@ namespace Blog.Controllers
             var post = await _context.Posts
                 .Include(p => p.Post_Images)
                 .ThenInclude(pi => pi.Image)
-                .FirstOrDefaultAsync(p => p.Id == model.PostId && p.UserId == userId);
+                .FirstOrDefaultAsync(p => p.Id == model.Id && p.UserId == userId);
 
             if (post == null)
             {
@@ -513,137 +506,10 @@ namespace Blog.Controllers
 
             return Ok(new { success = true });
         }
-        [HttpGet]
-
-        public async Task<IActionResult> GetComments(int postId)
-        {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var userIdInt = string.IsNullOrEmpty(userId) ? 0 : int.Parse(userId);
-                var comments = await _context.Comments
-                    .Where(c => c.PostId == postId && c.ParentId == null)
-                    .Include(c => c.User)
-                    .Include(c => c.Comment_Likes)
-                    .Include(c => c.Replies)
-                        .ThenInclude(r => r.User)
-                    .Select(c => new
-                    {
-                        c.Id,
-                        User = new
-                        {
-                            Id = c.UserId,
-                            UserName = c.User.UserName,
-                            c.User.AvatarPath
-                        },
-                        c.UserId,
-                        c.Text,
-                        c.PostId,
-                        c.ParentId,
-                        c.ReplyTo,
-                        ReplyToId = c.ReplyTo,
-                        CreatedAt = c.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
-                        LikesCount = c.Comment_Likes.Count(),
-                        IsLiked = userIdInt > 0 && c.Comment_Likes.Any(l => l.Like.UserId == userIdInt),
-                        IsCurrentUser = c.User.Id == userIdInt && c.UserId == userIdInt,
-                        IsReply = false,
-                        Replies = c.Replies.Select(r => new
-                        {
-                            r.Id,
-                            User = new
-                            {
-                                Id = r.UserId,
-                                UserName = r.User.UserName,
-                                r.User.AvatarPath
-                            },
-                            r.Text,
-                            r.PostId,
-                            r.ParentId,
-                            IsReply = true,
-                            
-                            ReplyToId = r.ReplyTo,
-                            ReplyToUser = _context.Comments.FirstOrDefault(c=>c.Id == r.ReplyTo).User.UserName,
-                            LikesCount = r.Comment_Likes.Count(),
-                            IsLiked = userIdInt > 0 && r.Comment_Likes.Any(l => l.Like.UserId == userIdInt),
-                            CreatedAt = r.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
-                            IsCurrentUser = r.User.Id == userIdInt
-                        })
-                    })
-                    .ToListAsync();
-                return Ok(comments.OrderByDescending(p => p.CreatedAt));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error loading comments");
-                return StatusCode(500, new { error = "Failed to load comments. Please try again." });
-            }
-        }
+        
 
 
-        [HttpPost]
-        public async Task<IActionResult> AddComment([FromBody] CommentCreateModel dto)
-        {
-            try
-            {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                var user = await _context.Users.FindAsync(userId);
-                if (user == null) return Unauthorized();
-
-                int? rootParentId = null;
-                int? replyToId = null;
-                string replyToUsername = null;
-
-                if (dto.ParentId.HasValue)
-                {
-                    var parentComment = await _context.Comments
-                        .Include(c => c.User)
-                        .FirstOrDefaultAsync(c => c.Id == dto.ParentId.Value);
-
-                    if (parentComment == null) return BadRequest("Parent comment not found");
-
-                    // Root parent всегда будет самым верхним комментарием в цепочке
-                    rootParentId = parentComment.ParentId ?? dto.ParentId;
-
-                    // ReplyToId - это ID комментария, на который непосредственно отвечаем
-                    replyToId = dto.ParentId;
-
-                    // Получаем username автора комментария, на который отвечаем
-                    replyToUsername = parentComment.User.UserName;
-
-                    dto.PostId = parentComment.PostId;
-                }
-
-                var comment = new Comment
-                {
-                    Text = dto.Text.Trim(),
-                    PostId = dto.PostId,
-                    ParentId = rootParentId,  // Всегда указывает на корневой комментарий
-                    ReplyTo = replyToId,   // Указывает на непосредственный комментарий-ответ
-                    UserId = user.Id,
-                    CreatedAt = DateTime.UtcNow,
-                };
-
-                _context.Comments.Add(comment);
-                await _context.SaveChangesAsync();
-                var replyToUser = _context.Comments?.FirstOrDefaultAsync(c => c.Id == comment.ReplyTo)?.Result?.User?.UserName;
-                return Ok(new
-                {
-                    success = true,
-                    comment.Id,
-                    User = new { user.Id, user.UserName, user.AvatarPath },
-                    comment.Text,
-                    CreatedAt = comment.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
-                    ParentId = comment.ParentId,
-                    ReplyToId = comment.ReplyTo,
-                    ReplyToUser = replyToUser,
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error adding comment");
-                return StatusCode(500, new { error = "Failed to add comment" });
-            }
-        }
+        
 
         // POST: Profile/ToggleLike
         [HttpPost]
@@ -732,96 +598,9 @@ namespace Blog.Controllers
                 return StatusCode(500, new { error = "Failed to toggle like" });
             }
         }
-        [HttpPost]
-        public async Task<IActionResult> DeleteComment(int commentId)
-        {
-            try
-            {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                var comment = await _context.Comments
-                    .Include(c => c.User)
-                    .FirstOrDefaultAsync(c => c.Id == commentId);
-
-                if (comment == null) return NotFound();
-
-                // Проверяем, что пользователь удаляет свой комментарий
-                if (comment.User.Id != userId)
-                    return Unauthorized();
-
-                _context.Comments.Remove(comment);
-                await _context.SaveChangesAsync();
-
-                return Ok(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting comment");
-                return StatusCode(500, new { error = "Failed to delete comment" });
-            }
-        }
-        [HttpGet]
-        public async Task<IActionResult> GetReplies(int commentId)
-        {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var userIdInt = string.IsNullOrEmpty(userId) ? 0 : int.Parse(userId);
-
-                var replies = await _context.Comments
-                    .Where(c => c.ParentId == commentId)
-                    .Include(c => c.User)
-                    .Include(c => c.Comment_Likes)
-                    .Select(c => new
-                    {
-                        c.Id,
-                        User = new { Id = c.UserId, c.User.UserName, c.User.AvatarPath },
-                        c.Text,
-                        CreatedAt = c.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
-                        LikesCount = c.Comment_Likes.Count(),
-                        IsLiked = userIdInt > 0 && c.Comment_Likes.Any(l => l.Like.UserId == userIdInt),
-                        IsCurrentUser = c.User.Id == userIdInt && c.UserId == userIdInt,
-                        IsReply = true,
-                        ParentId = c.ParentId
-
-                    })
-                    .ToListAsync();
-
-                return Ok(replies);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error loading replies");
-                return StatusCode(500, new { error = "Failed to load replies" });
-            }
-        }
-        [HttpPost]
-        public async Task<IActionResult> EditComment([FromBody] CommentEditModel model)
-        {
-            try
-            {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                Comment comment = await _context.Comments
-                    .FirstOrDefaultAsync(c => c.Id == model.CommentId && c.UserId == userId);
-
-                if (comment == null)
-                {
-                    return NotFound(new { error = "Comment not found or you don't have permission to edit it" });
-                }
-                
-                comment.Text = model.Text.Trim();
-                comment.UpdatedAt = DateTime.UtcNow;
-
-                _context.Comments.Update(comment);
-                await _context.SaveChangesAsync();
-
-                return Ok(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error editing comment");
-                return StatusCode(500, new { error = "Failed to edit comment" });
-            }
-        }
+        
+        
+        
         [HttpGet]
         public async Task<IActionResult> SearchUsers(string query, int limit = 10)
         {

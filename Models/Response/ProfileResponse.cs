@@ -1,18 +1,16 @@
-﻿using Blog.Models.Post;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
-namespace Blog.Models.Account
+namespace Blog.Models.Response
 {
-    public class ProfileModel
+    public class ProfileResponse
     {
         public int Id { get; set; }
 
-        [Required]
         [Display(Name = "User Name")]
         public string UserName { get; set; }
 
-        [Required]
         [EmailAddress]
         public string Email { get; set; }
 
@@ -26,7 +24,7 @@ namespace Blog.Models.Account
 
         [NotMapped]
         [Display(Name = "Avatar")]
-        public IFormFile AvatarFile { get; set; }
+        public IFormFile Avatar { get; set; }
 
         public string AvatarPath { get; set; }
 

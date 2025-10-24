@@ -43,6 +43,7 @@ builder.Services.AddAuthentication(options =>
     options.SlidingExpiration = true;   
 });
 
+
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -89,25 +90,13 @@ app.UseCookiePolicy(new CookiePolicyOptions
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "userProfile",
-    pattern: "user/{id}-{username}",
-    defaults: new { controller = "Profile", action = "Users" });
 
-app.MapControllerRoute(
-    name: "userProfileById",
-    pattern: "user/{id}",
-    defaults: new { controller = "Profile", action = "Users", username = (string?)null });
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.MapGet("/Profile/Users", context =>
-{
-    context.Response.Redirect($"/user/{context.User.FindFirstValue(ClaimTypes.NameIdentifier)}");
-    return Task.CompletedTask;
-});
+
 
 app.Use(async (context, next) =>
 {

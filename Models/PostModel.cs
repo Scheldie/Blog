@@ -3,7 +3,7 @@ using Blog.Entities;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Blog.Models.Post
+namespace Blog.Models
 {
     public class PostModel
     {
@@ -19,7 +19,13 @@ namespace Blog.Models.Post
         [DataType(DataType.Upload)]
         public IEnumerable<IFormFile> ImageFiles { get; set; }
 
+        public bool DeleteExistingImages { get; set; }
+        public int DeletedExistingImagesCount { get; set; }
 
+        public List<string>? DeletedFilesPaths { get; set; }
+
+        [DataType(DataType.Upload)]
+        public IEnumerable<IFormFile>? NewImageFiles { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }

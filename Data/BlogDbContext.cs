@@ -1,7 +1,6 @@
 ﻿using Blog.Entities;
 using Blog.Entities.Enums;
 using Blog.Models;
-using Blog.Models.Account;
 using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
 using System.Reflection.Emit;
@@ -27,7 +26,7 @@ namespace Blog.Data
                             .SetBasePath(Directory.GetCurrentDirectory())
                             .Build();
 
-            optionsBuilder.UseNpgsql("Host = localhost; Port = 5432; Database = migrations; Username = postgres; Password = 1");
+            optionsBuilder.UseNpgsql(config.GetConnectionString("DefaultConnection"));
         }
         protected override void OnModelCreating(ModelBuilder builder)
         {

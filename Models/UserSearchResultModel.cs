@@ -1,4 +1,4 @@
-﻿namespace Blog.Models.Account
+﻿namespace Blog.Models
 {
     public class UserSearchResultModel
     {
