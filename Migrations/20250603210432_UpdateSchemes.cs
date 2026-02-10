@@ -28,24 +28,13 @@ namespace Blog.Migrations
                 type: "timestamp with time zone",
                 nullable: false,
                 defaultValueSql: "NOW()");
-
-            migrationBuilder.RenameColumn(
-                name: "LikeCount",
-                table: "Posts",
-                newName: "LikesCount");
-            migrationBuilder.DropIndex(
-                name: "IX_Images_UserId"
-            );
+            
         }
 
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "LikesCount",
-                table: "Posts",
-                newName: "LikeCount");
             migrationBuilder.DropColumn(
                 name: "IsActive",
                 table: "Users");
@@ -64,12 +53,6 @@ namespace Blog.Migrations
                 type: "text",
                 nullable: false,
                 defaultValueSql: "");
-            migrationBuilder.CreateIndex(
-                name: "IX_Images_UserId",
-                table: "Images",
-                column: "UserId",
-                unique: true
-            );
         }
     }
 }

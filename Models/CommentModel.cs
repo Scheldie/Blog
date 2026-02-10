@@ -7,9 +7,9 @@ namespace Blog.Models
     {
         public int Id { get; set; }
 
-        public virtual User User { get; set; }
-        public string UserName => User?.UserName;
-        public string AvatarPath => User?.AvatarPath;
+        public virtual User? User { get; set; }
+        public string? UserName => User?.UserName;
+        public string? AvatarPath => User?.AvatarPath;
 
         [Required]
         public int UserId { get; set; }
@@ -18,12 +18,12 @@ namespace Blog.Models
         [StringLength(500, MinimumLength = 1)]
         public string Text { get; set; }
 
-        public virtual Entities.Post Post { get; set; }
+        public virtual Entities.Post? Post { get; set; }
         [Required]
         public int PostId { get; set; }
 
         public int? ParentId { get; set; }  
-        public virtual Comment Parent { get; set; }
+        public virtual Comment? Parent { get; set; }
 
         [Required]
         public DateTime CreatedAt { get; set; }

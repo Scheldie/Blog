@@ -118,7 +118,7 @@ export function initModalManager() {
                     throw new Error('Заполните все обязательные поля');
                 }
 
-                formData.append('PostId', postId);
+                formData.append('Id', postId);
                 formData.append('Title', title);
                 formData.append('Description', description);
 

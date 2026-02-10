@@ -35,12 +35,6 @@ namespace Blog.Migrations
                     );
                 }
             );
-            migrationBuilder.CreateIndex(
-                name: "IX_Images_UserId",
-                table: "Images",
-                column: "UserId",
-                unique: true
-            );
             
         }
 

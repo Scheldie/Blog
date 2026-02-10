@@ -135,7 +135,7 @@
                 <div class="carousel-container">
                     @foreach (var post in Model.Posts.OrderByDescending(p => p.CreatedAt))
                     {
-                        @foreach (var postImage in post.Post_Images.Take(1))
+                        @foreach (var postImage in post.PostImages.Take(1))
                         {
                             <img src="@Url.Content(postImage.Image.Path)" alt="Пост @post.Id" class="carousel-image" data-post-id="@post.Id">
                         }
@@ -185,7 +185,7 @@
                             }
 
                             @{
-                                var imageCount = post.Post_Images?.Count() ?? 0;
+                                var imageCount = post.PostImages?.Count() ?? 0;
                                 var containerClass = imageCount switch
                                 {
                                     1 => "post-images-container single-image",
@@ -195,9 +195,9 @@
                             }
 
                             <div class="@containerClass">
-                                @if (post.Post_Images?.Any() == true)
+                                @if (post.PostImages?.Any() == true)
                                 {
-                                    @foreach (var postImage in post.Post_Images!)
+                                    @foreach (var postImage in post.PostImages!)
                                     {
                                         @if (postImage.Image?.Path != null)
                                         {
@@ -224,9 +224,9 @@
                             </div>
                             <div class="like-section" data-post-id="@post.Id">
                                 @Html.AntiForgeryToken()
-                                <img src="~/img/@((post.Post_Likes?.Any(l => l.Like.User.Id == Model.WatcherId) == true) ? "Heart Active.png" : "Heart.png")"
-                                     class="like-icon @((post.Post_Likes?.Any(l => l.Like.UserId == Model.WatcherId) == true) ? "active" : "")">
-                                <span class="like-count">@(post.Post_Likes?.Count() ?? 0)</span>
+                                <img src="~/img/@((post.PostLikes?.Any(l => l.Like.User.Id == Model.WatcherId) == true) ? "Heart Active.png" : "Heart.png")"
+                                     class="like-icon @((post.PostLikes?.Any(l => l.Like.UserId == Model.WatcherId) == true) ? "active" : "")">
+                                <span class="like-count">@(post.PostLikes?.Count() ?? 0)</span>
                             </div>
                         </div>
                         <div class="comments-section">

@@ -5,37 +5,37 @@ namespace Blog.Models.Request
 {
     public class ProfileRequest
     {
-        public int Id { get; set; }
+        public int Id { get; init; }
 
         [Display(Name = "User Name")]
-        public string UserName { get; set; }
+        public required string UserName { get; init; }
 
         [EmailAddress]
-        public string Email { get; set; }
+        public string? Email { get; init; }
 
         [DataType(DataType.Password)]
         [Display(Name = "New Password")]
-        public string NewPassword { get; set; }
+        public string? NewPassword { get; init; }
 
         [Display(Name = "Bio")]
         [StringLength(500)]
-        public string Bio { get; set; }
+        public string? Bio { get; init; }
 
         [NotMapped]
         [Display(Name = "Avatar")]
-        public IFormFile Avatar { get; set; }
+        public IFormFile? Avatar { get; init; }
 
-        public string AvatarPath { get; set; }
+        public string? AvatarPath { get; init; }
 
-        public bool IsActive { get; set; }
+        public bool IsActive { get; init; }
 
-        public bool IsCurrentUser {  get; set; }
+        public bool IsCurrentUser {  get; init; }
         
         [NotMapped]
         [Display(Name = "Watcher")]
-        public int WatcherId { get; set; }
+        public int? WatcherId { get; init; }
 
-        public virtual IEnumerable<PostModel> Posts { get; set; }
+        public virtual IEnumerable<PostModel>? Posts { get; init; }
 
     }
 }

@@ -73,18 +73,6 @@ namespace Blog.Migrations
                 principalTable: "Posts",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
-            migrationBuilder.Sql(@"
-            UPDATE comments 
-            SET updated_at = created_at 
-            WHERE updated_at = '-infinity' OR updated_at IS NULL;
-            
-            ALTER TABLE comments 
-            ALTER COLUMN likes_count SET DEFAULT 0;
-            
-            UPDATE comments 
-            SET likes_count = 0 
-            WHERE likes_count IS NULL;
-        ");
             
         }
 

@@ -487,8 +487,6 @@ namespace Blog.Migrations
                 {
                     b.Navigation("Comments");
 
-                    b.Navigation("Post_Likes");
-
                     b.Navigation("Post_Images");
 
                     b.Navigation("Post_Views");

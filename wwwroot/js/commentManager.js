@@ -137,7 +137,7 @@
                     'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
                 },
                 body: JSON.stringify({
-                    commentId: commentId,
+                    Id: commentId,
                     text: newText
                 })
             });
