@@ -17,7 +17,6 @@ namespace Blog.Models
         public IEnumerable<IFormFile>? ImageFiles { get; set; }
 
         public bool DeleteExistingImages { get; set; }
-        public int DeletedExistingImagesCount { get; set; }
 
         public List<string>? DeletedFilesPaths { get; set; }
 

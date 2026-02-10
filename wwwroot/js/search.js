@@ -36,12 +36,12 @@
 
     showAllResults.addEventListener('click', function () {
         if (currentSearchTerm.length >= 2) {
-            window.location.href = `/Profile/SearchResults?query=${encodeURIComponent(currentSearchTerm)}`;
+            window.location.href = `/Search/SearchResults?query=${encodeURIComponent(currentSearchTerm)}`;
         }
     });
 
     function searchUsers(query, showAll = false) {
-        fetch(`/Profile/SearchUsers?query=${encodeURIComponent(query)}&limit=${showAll ? 0 : 10}`)
+        fetch(`/Search/SearchUsers?query=${encodeURIComponent(query)}&limit=${showAll ? 0 : 10}`)
             .then(response => response.json())
             .then(data => {
                 if (data.length > 0) {

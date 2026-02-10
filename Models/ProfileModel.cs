@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Blog.Models.Request
 {
-    public class ProfileRequest
+    public class ProfileModel
     {
         public int Id { get; init; }
 

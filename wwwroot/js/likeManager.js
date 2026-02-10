@@ -1,6 +1,6 @@
 export function initLikeManager() {
 
-    // Функция для инициализации состояния лайков
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     function initializeLikes() {
         document.querySelectorAll('.like-section').forEach(section => {
             const likeIcon = section.querySelector('.like-icon');
@@ -14,9 +14,9 @@ export function initLikeManager() {
         });
     }
 
-    // Обработчик кликов для лайков
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     document.addEventListener('click', async (e) => {
-        // Обработка лайков поста
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         if (e.target.closest('.like-icon')) {
             const likeIcon = e.target.closest('.like-icon');
             const likeSection = likeIcon.closest('.like-section');
@@ -28,14 +28,14 @@ export function initLikeManager() {
 
             try {
                 const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-                const response = await fetch(`/Profile/ToggleLike?postId=${postId}&isComment=false`, {
+                const response = await fetch(`/Like/ToggleLike?postId=${postId}&isComment=false`, {
                     method: 'POST',
                     headers: {
                         'RequestVerificationToken': token
                     }
                 });
 
-                if (!response.ok) throw new Error('Ошибка сети');
+                if (!response.ok) throw new Error('пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ');
 
                 const result = await response.json();
                 if (result.success) {
@@ -51,15 +51,15 @@ export function initLikeManager() {
                     }
                 }
             } catch (error) {
-                console.error('Ошибка лайка поста:', error);
+                console.error('пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ:', error);
             }
         }
 
-        // Обработка лайков комментариев
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         if (e.target.closest('.like-btn')) {
             const likeBtn = e.target.closest('.like-btn');
 
-            // Создаем иконку, если её нет
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ
             if (!likeBtn.querySelector('.like-icon')) {
                 const isActive = likeBtn.classList.contains('active');
 
@@ -77,7 +77,7 @@ export function initLikeManager() {
 
             try {
                 const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-                const response = await fetch(`/Profile/ToggleLike?postId=${commentId}&isComment=true`, {
+                const response = await fetch(`/Like/ToggleLike?postId=${commentId}&isComment=true`, {
                     method: 'POST',
                     headers: {
                         'RequestVerificationToken': token,
@@ -85,7 +85,7 @@ export function initLikeManager() {
                     }
                 });
 
-                if (!response.ok) throw new Error('Ошибка сервера');
+                if (!response.ok) throw new Error('пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ');
 
                 const result = await response.json();
                 if (result.success) {
@@ -96,14 +96,14 @@ export function initLikeManager() {
                     setTimeout(() => likeIcon.style.transform = '', 300);
                 }
             } catch (error) {
-                console.error('Ошибка:', error);
+                console.error('пїЅпїЅпїЅпїЅпїЅпїЅ:', error);
             }
         }
     });
 
     return {
         setupLikes: function (element) {
-            // Для динамически добавленных элементов
+            // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             element.querySelectorAll('.like-btn').forEach(btn => {
                 if (!btn.querySelector('.like-icon')) {
                     const icon = document.createElement('img');

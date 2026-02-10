@@ -177,7 +177,7 @@ namespace Blog.Controllers
 
                 if (comment == null)
                 {
-                    return NotFound(new { error = "Comment not found or you don't have permission to edit it" });
+                    return NotFound(new { error = "Comment not found" });
                 }
 
                 comment.Text = model.Text.Trim();

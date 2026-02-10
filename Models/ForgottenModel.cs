@@ -7,6 +7,6 @@ namespace Blog.Models
         [EmailAddress]
         [DataType(DataType.EmailAddress)]
         [Required(ErrorMessage = "Please enter correct email")]
-        public string Email { get; set; }
+        public required string Email { get; init; }
     }
 }

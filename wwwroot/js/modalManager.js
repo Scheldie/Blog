@@ -142,7 +142,7 @@ export function initModalManager() {
                 }
 
                 // Отправка на сервер
-                const response = await fetch('/Profile/EditPost', {
+                const response = await fetch('/Post/EditPost', {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -177,7 +177,7 @@ export function initModalManager() {
 
             try {
                 const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                const response = await fetch(`/Profile/DeletePost?postId=${currentPostData.postId}`, {
+                const response = await fetch(`/Post/DeletePost?postId=${currentPostData.postId}`, {
                     method: 'POST',
                     headers: {
                         'RequestVerificationToken': token

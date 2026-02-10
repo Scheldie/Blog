@@ -1,17 +1,10 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Builder.Extensions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Blog.Data.Interfaces;
-using Blog.Data.Repositories;
 using Blog.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Blog.Entities;
-using Blog.Data;
-using Microsoft.AspNetCore.Authorization;
 using Blog.Models;
 
 namespace Blog.Controllers
@@ -20,7 +13,6 @@ namespace Blog.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly ILogger<AuthorizationController> _logger;
-        private readonly BlogDbContext dbContext;
 
         public AuthorizationController(ILogger<AuthorizationController> logger, IUserRepository userRepository)
         {

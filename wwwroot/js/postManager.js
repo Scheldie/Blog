@@ -12,7 +12,7 @@ export function initPostManager(modalManager, imageManager, commentManager, like
             const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
             const token = tokenElement ? tokenElement.value : '';
 
-            const response = await fetch('/Profile/CreatePost', {
+            const response = await fetch('/Post/CreatePost', {
                 method: 'POST',
                 body: formData,
                 headers: {
