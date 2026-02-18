@@ -1,0 +1,102 @@
+﻿@model IEnumerable<PostModel>
+@foreach (var post in Model)
+{
+    <div class="publication" data-post-id="@post.Id">
+
+        <!-- HEADER -->
+        <div class="publication-header">
+            <div class="publication-user-info">
+                <a asp-controller="Profile" asp-action="Users" asp-route-id="@post.User.Id">
+                    <img 
+                        src="/img/placeholder-avatar.png"
+                        data-src="@(post.User.AvatarPath ?? Url.Content("~/img/profile.png"))"
+                        class="publication-avatar lazy">
+                </a>
+
+                <a asp-controller="Profile" asp-action="Users" asp-route-id="@post.User.Id"
+                   class="publication-user-name">@post.User.UserName</a>
+            </div>
+
+            <p class="publication-date">@post.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
+
+            @if (post.IsCurrentUser)
+            {
+                <div class="edit-icon-container">
+                    <img src="~/img/edit-icon.png" data-post-id="@post.Id" class="edit-icon" alt="Редактировать">
+                </div>
+            }
+        </div>
+
+
+        <!-- CONTENT -->
+        <div class="publication-content">
+
+            @if (!string.IsNullOrEmpty(post.Title))
+            {
+                <h2 class="publication-title">@post.Title</h2>
+            }
+
+            @{
+                var imageCount = post.PostImages?.Count() ?? 0;
+                var containerClass = imageCount switch
+                {
+                    1 => "post-images-container single-image",
+                    2 => "post-images-container double-image",
+                    _ => "post-images-container multiple-image"
+                };
+            }
+
+            <div class="@containerClass">
+                @if (post.PostImages?.Any() == true)
+                {
+                    @foreach (var postImage in post.PostImages)
+                    {
+                        if (postImage.Image?.Path != null)
+                        {
+                            <div class="post-image-item">
+                                <img 
+                                    src="/img/placeholder.jpg"
+                                    data-src="@Url.Content(postImage.Image.Path)"
+                                    class="post-image lazy"
+                                    alt="Изображение поста">
+                            </div>
+                        }
+                    }
+                }
+            </div>
+
+            @if (!string.IsNullOrEmpty(post.Description))
+            {
+                <h3 class="publication-description">@post.Description</h3>
+            }
+        </div>
+
+
+        <!-- BOTTOM -->
+        <div class="post-bottom">
+            <div class="comments-toggle">
+                <img src="~/img/Chevron down.png" class="toggle-comments">
+                <span class="comment-count">@(post.Comments?.Count() ?? 0)</span>
+            </div>
+
+            <div class="like-section" data-post-id="@post.Id">
+                @Html.AntiForgeryToken()
+                <img
+                    src="~/img/@((post.PostLikes?.Any(l => l.Like.User.Id == post.WatcherId) == true) ? "Heart Active.png" : "Heart.png")"
+                    class="like-icon @((post.PostLikes?.Any(l => l.Like.UserId == post.WatcherId) == true) ? "active" : "")">
+                <span class="like-count">@(post.PostLikes?.Count() ?? 0)</span>
+            </div>
+        </div>
+
+
+        <!-- COMMENTS -->
+        <div class="comments-section">
+            <h3 class="comment-header">Комментарии:</h3>
+            <div class="comments-list"></div>
+
+            <textarea class="comment-area" placeholder="Введите ваш комментарий"></textarea>
+            <button class="add-comment">Добавить комментарий</button>
+        </div>
+
+    </div>
+}

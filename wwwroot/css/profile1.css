@@ -1,0 +1,379 @@
+﻿/* container */
+.profile-container {
+    max-width: 900px;
+    margin: 40px 0;     
+    padding: 0 20px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 100%;
+}
+
+/* header */
+.header {
+    position: fixed;                 
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+
+    display: flex;                   
+    align-items: center;
+    justify-content: space-between;
+
+    height: 60px;                    
+    padding: 0 20px;                 
+
+    background-color: #fff;         
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    
+    list-style: none;                
+    margin: 0;
+}
+
+
+.logo {
+    width: 110px;
+    height: 55px;
+    object-fit: contain;
+}
+
+.search-container {
+    position: relative;
+    margin: 0 20px;
+    margin-left: auto
+}
+
+#userSearch {
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    width: 250px;
+    outline: none;
+    transition: all 0.3s;
+}
+
+#userSearch:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
+}
+
+.show-all-results {
+    display: none;
+}
+
+.profile-icon,
+.log-out-icon {
+    width: 40px;
+    margin-left: 0;
+    height: 40px;
+    object-fit: contain;
+    cursor: pointer;
+}
+.log-out-icon {
+    margin-left: 54px;
+}
+
+/* Сдвигаем иконку профиля на 20px левее */
+.profile-icon-li {
+    margin-left: auto;
+}
+
+/* чтобы контент не залезал под шапку */
+body {
+    padding-top: 50px;
+}
+
+
+
+
+
+
+.profile-icon-li {
+    margin-left: auto;
+}
+
+/* avatar */
+.profile-avatar {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #ddd;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+/* profile info */
+.profile-info {
+    display: flex;
+    gap: 40px;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0;
+    padding: 30px;
+    align-items: flex-start;
+    text-align: left;
+    justify-content: flex-start; /* вместо центра */
+    padding-left: 0; /* убираем лишние отступы */
+}
+
+
+.profile-info-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+
+.profile-name {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.profile-status {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.profile-about {
+    font-size: 15px;
+    color: #444;
+    line-height: 1.5;
+    white-space: pre-line;
+}
+/* edit profile button */
+#editProfileBtn {
+     padding: 8px 18px;
+     background: rgba(0,0,0,0.05); /* полупрозрачная */
+     color: #333;
+     border: 1px solid #ccc;
+     border-radius: 8px;
+     cursor: pointer;
+     font-size: 14px;
+     font-weight: 500;
+     transition: background 0.2s, transform 0.1s;
+ }
+
+#editProfileBtn:hover {
+    background: rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+/* add post button */
+#add-publication-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 220px;
+    padding: 12px 20px;
+    margin: 0 auto;
+    border: 2px solid #4a76a8;
+    border-radius: 25px;
+    background-color: #f5f5f5;
+    color: #4a76a8;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#add-publication-button:hover {
+    background-color: #4a76a8;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+#add-publication-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+}
+
+.create-publication-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+}
+
+#add-publication-button:hover .create-publication-icon {
+    transform: rotate(90deg);
+    filter: brightness(0) invert(1);
+}
+
+
+
+#create-publication-title {
+    margin: 0;
+    padding: 0;
+}
+
+/* grid of posts */
+.profile-posts {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+}
+/* post card */
+.profile-post-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.profile-post-card:hover {
+    transform: translateY(-3px);
+}
+
+.profile-post-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+/* adaptive */
+@media (max-width: 600px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+    }
+}
+
+
+.profile-avatar-preview .preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-avatar-preview {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.65);
+    color: #fff;
+    border: none;
+    font-size: 18px;
+    line-height: 26px;
+    text-align: center;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile-avatar-preview .avatar-remove-btn:hover {
+    background: rgba(0,0,0,0.85);
+}
+
+.remove-avatar-btn {
+    display: none;
+}
+.profile-avatar-preview {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 15px;
+    border: 2px solid #ddd;
+}
+
+.avatar-wrapper {
+    position: relative;
+    width: 140px;
+    margin: 0 auto 20px;
+}
+
+.profile-avatar-preview {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid #ddd;
+}
+
+.profile-avatar-preview .preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-upload-area {
+    display: block;
+    cursor: pointer;
+}
+
+.avatar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.avatar-upload-area:hover .avatar-overlay {
+    background: rgba(0,0,0,0.4);
+}
+
+.camera-icon {
+    font-size: 32px;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.avatar-upload-area:hover .camera-icon {
+    opacity: 1;
+}
+
+.avatar-remove-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+
+
+
+
+
+

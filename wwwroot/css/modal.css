@@ -1,0 +1,334 @@
+﻿/* modal base */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.75);
+    z-index: 4999;
+}
+
+.modal__content {
+    position: relative;
+    z-index: 5001;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+
+.modal__close {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    font-size: 28px;
+    cursor: pointer;
+    color: #666;
+    background: none;
+    border: none;
+}
+/* add post modal */
+
+#modal-add-post .modal__content {
+    max-width: 600px;
+    padding: 30px;
+}
+
+#modal-add-post h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* image preview */
+.images-preview {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin: 15px 0;
+    min-height: 150px;
+    border: 2px dashed #ddd;
+    padding: 15px;
+    border-radius: 8px;
+}
+.image-preview-item {
+    position: relative;
+    display: inline-block;
+    margin: 5px;
+    width: 100px;
+    height: 100px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.remove-image-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 16px;
+    line-height: 22px;
+    text-align: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+.remove-image-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+
+#images-preview img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* fields */
+#add-publication-title,
+#add-publication-description {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+
+#add-publication-description {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* button */
+#submit-add {
+    background: #3a6bff;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#submit-add:hover {
+    background: #2c59e0;
+}
+
+/* edit post modal */
+
+#modal-edit-post .modal__content {
+    max-width: 600px;
+    padding: 30px;
+}
+
+#modal-edit-post h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+
+.modal-input,
+.modal-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 15px;
+    font-family: inherit;
+}
+
+.modal-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+#edit-images-preview img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.modal-save-btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.modal-delete-btn {
+    background: #ff4444;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+}
+/* edit post */
+
+#modal-edit-profile .modal__content {
+    max-width: 600px;
+    padding: 30px;
+}
+
+#modal-edit-profile h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* fields */
+.modal-input,
+.modal-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    transition: border 0.2s ease;
+}
+
+.modal-input:focus,
+.modal-textarea:focus {
+    border-color: #3a6bff;
+    box-shadow: 0 0 0 2px rgba(58, 107, 255, 0.15);
+    outline: none;
+}
+
+.modal-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* avatar preview */
+.profile-avatar-preview img {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ddd;
+    display: block;
+    margin: 10px auto 20px;
+}
+
+/* buttons */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+.modal-save-btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: 0.2s;
+}
+
+.modal-save-btn:hover {
+    background: #43a047;
+}
+
+/* carousel modal */
+
+#modal-photo-view .modal__content {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    max-width: 90%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+#modal-photo-view .modal__overlay {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+/* close */
+#modal-photo-view .modal__close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    font-size: 32px;
+    color: #fff;
+}
+
+/* image */
+.photo-view-image {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 10px;
+    display: block;
+}
+
+/* view post */
+.photo-view-post-btn {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #3a6bff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.photo-view-post-btn:hover {
+    background: #2c59e0;
+    transform: translateY(-1px);
+}
+
+
+
+
+
