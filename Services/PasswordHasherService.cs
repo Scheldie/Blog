@@ -1,6 +1,6 @@
 ﻿namespace Blog.Services
 {
-    public class PasswordHasher : IPasswordHasher
+    public class PasswordHasherService
     {
         public string Generate(string password)
         {

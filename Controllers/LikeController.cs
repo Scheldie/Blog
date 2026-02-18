@@ -1,8 +1,8 @@
 ﻿using System.Security.Claims;
 using Blog.Data;
-using Blog.Data.Interfaces;
 using Blog.Entities;
 using Blog.Entities.Enums;
+using Blog.Models;
 using Blog.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,77 +12,69 @@ namespace Blog.Controllers;
 public class LikeController : Controller
 {
     private readonly BlogDbContext _context;
-    private readonly IUserRepository _userRepository;
     private readonly ILogger<ProfileController> _logger;
 
 
     public LikeController(BlogDbContext context, 
-        IUserRepository userRepository, ILogger<ProfileController> logger)
+        ILogger<ProfileController> logger)
     {
         _context = context;
-        _userRepository = userRepository;
         _logger = logger;
     }
-
-    // GET
+    
     [HttpPost]
-    public async Task<IActionResult> ToggleLike(int postId, [FromQuery] bool isComment = false)
+    public async Task<IActionResult> ToggleLike([FromBody] LikeModel model)
     {
             try
             {
-                Console.WriteLine($"ToggleLike called for postId: {postId}, isComment: {isComment}");
+                Console.WriteLine($"ToggleLike called for postId: {model.PostId}, isComment: {model.IsComment}");
 
 
-                var entityExists = isComment
-                    ? await _context.Comments.AnyAsync(c => c.Id == postId)
-                    : await _context.Posts.AnyAsync(p => p.Id == postId);
+                var entityExists = model.IsComment
+                    ? await _context.Comments.AnyAsync(c => c.Id == model.CommentId)
+                    : await _context.Posts.AnyAsync(p => p.Id == model.PostId);
                 if (!entityExists)
                     return NotFound(new { error = "Post/Comment not found" });
-                Console.WriteLine($"Received toggle like for post {postId}");
+                Console.WriteLine($"Received toggle like for post {model.PostId}");
 
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int userId;
+                if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId)) return Unauthorized();
                 Console.WriteLine($"User ID: {userId}");
 
-                if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
-                {
-                    Console.WriteLine("Unauthorized request");
-                    return Json(new { error = "Unauthorized" });
-                }
-
-                var likeType = isComment ? LikeType.Comment : LikeType.Post;
-
+                var likeType = model.IsComment ? LikeType.Comment : LikeType.Post;
+                int entityId = model.CommentId.HasValue ? model.CommentId.Value : model.PostId;
                 var like = await _context.Likes
-                    .FirstOrDefaultAsync(l => l.EntityId == postId
-                        && l.UserId == userIdInt
+                    .FirstOrDefaultAsync(l => l.EntityId == entityId
+                        && l.UserId == userId
                         && l.LikeType == likeType);
 
                 if (like == null)
                 {
                     var likeDb = new Like
                     {
-                        EntityId = postId,
-                        UserId = userIdInt,
+                        EntityId = entityId,
+                        UserId = userId,
                         LikeType = likeType,
                         CreatedAt = DateTime.UtcNow,
-                        User = _userRepository.GetById(userIdInt)
+                        User = (await _context.Users.FirstOrDefaultAsync(u=>u.Id == userId))
                     };
-                    _context.Likes.Add(likeDb);
-                    _context.SaveChanges();
+                    await _context.Likes.AddAsync(likeDb);
+                    await _context.SaveChangesAsync();
                     if (likeType == LikeType.Comment)
                     {
-                        _context.Comment_Likes.Add(new Comment_Like
+                        await _context.Comment_Likes.AddAsync(new Comment_Like
                         {
-                            CommentId = postId,
-                            PostId = _context.Comments.FirstOrDefaultAsync(c=>c.Id==postId).Result.PostId,
+                            CommentId = entityId,
+                            PostId = model.PostId,
                             LikeId = likeDb.Id,
                             Like = likeDb
                         });
                     }
                     else
                     {
-                        _context.Post_Likes.Add(new Post_Like
+                        await _context.Post_Likes.AddAsync(new Post_Like()
                         {
-                            PostId = postId,
+                            PostId = entityId,
                             LikeId = likeDb.Id,
                             Like = likeDb
                         });
@@ -96,7 +88,7 @@ public class LikeController : Controller
                 await _context.SaveChangesAsync();
 
                 var likesCount = await _context.Likes
-                    .CountAsync(l => l.EntityId == postId && l.LikeType == likeType);
+                    .CountAsync(l => l.EntityId == entityId && l.LikeType == likeType);
 
                 return Ok(new
                 {
@@ -110,5 +102,5 @@ public class LikeController : Controller
                 _logger.LogError(ex, "Error toggling like");
                 return StatusCode(500, new { error = "Failed to toggle like" });
             }
-        }
+    }
 }

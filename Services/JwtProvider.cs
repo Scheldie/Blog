@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Blog.Services
 {
-    public class JwtProvider : IJwtProvider
+    public class JwtProvider
     {
         private readonly JwtOptions _options;
         public JwtProvider(IOptions<JwtOptions> options) 

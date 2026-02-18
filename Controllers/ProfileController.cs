@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Blog.Data;
 using Microsoft.AspNetCore.Authorization;
 using Blog.Entities;
-using Blog.Data.Interfaces;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Blog.Services;
@@ -20,23 +19,22 @@ namespace Blog.Controllers
     {
         private readonly BlogDbContext _context;
         private readonly IWebHostEnvironment _env;
-        private readonly IUserRepository _userRepository;
 
-        public ProfileController(BlogDbContext context, IWebHostEnvironment env, 
-            IUserRepository userRepository)
+        public ProfileController(BlogDbContext context, IWebHostEnvironment env)
         {
             _context = context;
             _env = env;
-            _userRepository = userRepository;
         }
 
         [Authorize]
         public async Task<IActionResult> Logout()
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            int userId;
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId)) return Unauthorized();
             var user = await _context.Users.FindAsync(userId);
+            if (user == null) return Unauthorized();
             user.IsActive = false;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index", "Home");
         }
@@ -44,48 +42,31 @@ namespace Blog.Controllers
         [HttpGet]
         public async Task<IActionResult> Feed()
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            int userId;
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId)) return Unauthorized();
             var user = await _context.Users.FindAsync(userId);
-            // Получаем посты от всех пользователей (или только от подписок, если у вас есть система подписок)
             var posts = await _context.Posts
                 .Include(p => p.Author)
-                .Include(p => p.Post_Images)
-                    .ThenInclude(pi => pi.Image)
-                .Include(p => p.Post_Likes)
+                .Include(p => p.PostImages)
+                .ThenInclude(pi => pi.Image)
+                .Include(p => p.PostLikes)
                     .ThenInclude(pl => pl.Like)
                         .ThenInclude(l => l.User)
                 .Include(p => p.Comments)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
-            var model = posts.Select(post => new PostModel
-            {
-                Id = post.Id,
-                Title = post.Title,
-                Description = post.Description,
-                PostImages = post.Post_Images,
-                CreatedAt = post.CreatedAt,
-                UpdatedAt = post.UpdatedAt,
-                ImagesCount = post.ImagesCount,
-                ViewCount = post.ViewCount,
-                Comments = post.Comments,
-                PostLikes = post.Post_Likes,
-                IsLiked = post.Post_Likes.Any(pl => pl.Like.User.Id == userId),
-                User = post.Author,
-                WatcherId = userId,
-                IsCurrentUser = post.Author.Id == userId
-            }).ToList();
+            var model = posts.Select(post => post.ToModel(userId)).ToList();
 
             return View(model);
         }
 
+        [Authorize]
         public async Task<IActionResult> Users(int id = 0, string? username = null)
         {
             // Если id не указан (равен 0) - показываем профиль текущего пользователя
             if (id == 0)
             {
-                if (!User.Identity.IsAuthenticated)
-                    return Challenge();
 
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
                 if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int currentUserId))
@@ -93,7 +74,7 @@ namespace Blog.Controllers
                     return RedirectToAction("Login", "Authorization");
                 }
 
-                var currentUser = _userRepository.GetById(currentUserId);
+                var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == currentUserId);
                 if (currentUser == null) return NotFound();
 
                 currentUser.IsActive = true;
@@ -109,7 +90,7 @@ namespace Blog.Controllers
             // Если указан username, проверяем его соответствие с ID
             if (!string.IsNullOrEmpty(username))
             {
-                user = _userRepository.GetByIdWithUsername(id, username);
+                user = await _context.Users.FirstOrDefaultAsync(u=>u.UserName ==  username && u.Id == id);
                 if (user == null)
                 {
                     // Если пользователь с такой парой id+username не найден
@@ -119,23 +100,21 @@ namespace Blog.Controllers
             else
             {
                 // Если username не указан, ищем только по ID
-                user = _userRepository.GetById(id);
+                user = await _context.Users.FirstOrDefaultAsync(u=>u.Id == id);
                 if (user == null) return NotFound();
             }
 
-            bool isCurrentUser = User.Identity.IsAuthenticated &&
-                               User.FindFirst(ClaimTypes.NameIdentifier)?.Value == id.ToString();
+            bool isCurrentUser = User.FindFirst(ClaimTypes.NameIdentifier)?.Value == id.ToString();
 
             return await GetUserProfile(user, isCurrentUser);
         }
 
         private async Task<IActionResult> GetUserProfile(User user, bool isCurrentUser)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             var posts = await _context.Posts
-                .Include(p => p.Post_Images)
+                .Include(p => p.PostImages)
                 .ThenInclude(pi => pi.Image)
-                .Include(pl => pl.Post_Likes)
+                .Include(pl => pl.PostLikes)
                 .Where(p => p.UserId == user.Id)
                 .ToListAsync();
 
@@ -147,22 +126,9 @@ namespace Blog.Controllers
                 Bio = user.Bio,
                 AvatarPath = user.AvatarPath,
                 IsCurrentUser = isCurrentUser,
-                WatcherId = userId,
+                WatcherId = user.Id,
                 IsActive = user.IsActive,
-                Posts = posts.Select(post => new PostModel
-                {
-                    Id = post.Id,
-                    Title = post.Title,
-                    Description = post.Description,
-                    PostImages = post.Post_Images,
-                    CreatedAt = post.CreatedAt,
-                    UpdatedAt = post.UpdatedAt,
-                    ImagesCount = post.ImagesCount,
-                    ViewCount = post.ViewCount,
-                    Comments = post.Comments,
-                    PostLikes = post.Post_Likes,
-                    IsLiked = post.Post_Likes.Any(p=>p.Like.UserId == user.Id),
-                }).ToList()
+                Posts = posts.Select(post => post.ToModel(user.Id)).ToList()
             };
 
             return View(model);
@@ -173,55 +139,60 @@ namespace Blog.Controllers
         public async Task<IActionResult> EditProfile(ProfileModel model)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            int userId;
+            if (!Int32.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId))
+                return Unauthorized();
+
             var user = await _context.Users.FindAsync(userId);
-
             if (user == null)
-            {
                 return NotFound();
-            }
 
             user.UserName = model.UserName;
             user.Bio = model.Bio;
+            
+            if (model.RemoveAvatar)
+            {
+                if (!string.IsNullOrEmpty(user.AvatarPath))
+                {
+                    var oldFilePath = Path.Combine(_env.WebRootPath, user.AvatarPath.TrimStart('/'));
+                    if (System.IO.File.Exists(oldFilePath))
+                        System.IO.File.Delete(oldFilePath);
+                }
 
-            // Обработка загрузки аватара
+                user.AvatarPath = null;
+            }
+            
             if (model.Avatar != null && model.Avatar.Length > 0)
             {
                 var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "avatars");
                 if (!Directory.Exists(uploadsFolder))
-                {
                     Directory.CreateDirectory(uploadsFolder);
-                }
 
                 var uniqueFileName = Guid.NewGuid().ToString() + "_" + model.Avatar.FileName;
                 var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
                     await model.Avatar.CopyToAsync(fileStream);
-                }
 
-                // Удаляем старый аватар, если он существует
+                // Удаляем старый аватар, если был
                 if (!string.IsNullOrEmpty(user.AvatarPath))
                 {
                     var oldFilePath = Path.Combine(_env.WebRootPath, user.AvatarPath.TrimStart('/'));
                     if (System.IO.File.Exists(oldFilePath))
-                    {
                         System.IO.File.Delete(oldFilePath);
-                    }
                 }
 
                 user.AvatarPath = $"/uploads/avatars/{uniqueFileName}";
             }
+
             _context.Update(user);
             await _context.SaveChangesAsync();
 
             return Ok(new { success = true, avatarPath = user.AvatarPath });
         }
+
         
 
     }

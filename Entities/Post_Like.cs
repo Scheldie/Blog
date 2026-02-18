@@ -4,12 +4,12 @@
     {
         public int Id { get; set; }
 
-        public int PostId { get; set; }
+        public int PostId { get; init; }
 
-        public virtual Post Post { get; set; }
+        public virtual Post? Post { get; init; }
 
-        public int LikeId { get; set; }
+        public int LikeId { get; init; }
 
-        public virtual Like Like { get; set; }
+        public virtual required Like Like { get; init; }
     }
 }

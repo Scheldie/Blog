@@ -6,14 +6,14 @@ namespace Blog.Entities
     {
         public int Id { get; set; }
 
-        public virtual User User { get; set; }
+        public virtual User? User { get; set; }
         
-        public int UserId { get; set; }
+        public int UserId { get; init; }
          
-        public virtual Follower Follow { get; set; }
-        public int FollowerId { get; set; }
+        public virtual Follower? Follow { get; init; }
+        public int FollowerId { get; init; }
 
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; init; }
 
     }
 }

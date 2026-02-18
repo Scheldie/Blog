@@ -2,8 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using Blog.Data;
-using Blog.Data.Interfaces;
-using Blog.Data.Repositories;
 using Blog.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -46,11 +44,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IImageRepository, ImageRepository>();
-builder.Services.AddScoped<IPostImageRepository, PostImageRepository>();
-builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<PostService>();
 
 builder.Services.AddCors(options =>
 {

@@ -1,4 +1,5 @@
-﻿using Blog.Entities.Enums;
+﻿using System.ComponentModel.DataAnnotations;
+using Blog.Entities.Enums;
 using Blog.Entities;
 
 namespace Blog.Entities
@@ -7,20 +8,21 @@ namespace Blog.Entities
     {
         public int Id { get; set; }
 
-        public virtual User User { get; set; }
+        public virtual User? User { get; init; }
 
-        public int UserId { get; set; }
+        public int UserId { get; init; }
 
-        public NotificationType NotificationType { get; set; }
+        public NotificationType NotificationType { get; init; }
 
-        public RelatedType RelatedType { get; set; }
+        public RelatedType RelatedType { get; init; }
 
-        public int RelatedId { get; set; }
+        public int RelatedId { get; init; }
 
-        public string Message { get; set; }
+        [MaxLength(600)]
+        public string? Message { get; init; }
 
-        public bool IsRead { get; set; }
+        public bool IsRead { get; init; }
 
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; init; }
     }
 }

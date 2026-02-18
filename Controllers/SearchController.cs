@@ -1,6 +1,5 @@
 ﻿using System.Security.Claims;
 using Blog.Data;
-using Blog.Data.Interfaces;
 using Blog.Models;
 using Blog.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -24,17 +23,17 @@ public class SearchController : Controller
                 return BadRequest("Слишком короткий запрос");
             }
 
-            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var currentUser = await _context.Users.FindAsync(int.Parse(currentUserId));
+            int currentUserId;
+            int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out currentUserId);
 
             // Ищем пользователей, чьи имена содержат запрос (регистронезависимо)
             var usersQuery = _context.Users
-                .Where(u => u.UserName.ToLower().Contains(query.ToLower()) && u.Id != currentUser.Id)
+                .Where(u => u.UserName.ToLower().Contains(query.ToLower()) && u.Id != currentUserId)
                 .Select(u => new UserSearchResultModel
                 {
                     Id = u.Id,
                     UserName = u.UserName,
-                    AvatarPath = u.AvatarPath,
+                    AvatarPath = u.AvatarPath ?? "",
                 })
                 .OrderBy(u => u.UserName);
 
@@ -56,16 +55,16 @@ public class SearchController : Controller
                 return RedirectToAction("Users");
             }
 
-            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var currentUser = await _context.Users.FindAsync(int.Parse(currentUserId));
+            int currentUserId;
+            int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out currentUserId);
 
             var users = await _context.Users
-                .Where(u => u.UserName.ToLower().Contains(query.ToLower()) && u.Id != currentUser.Id)
+                .Where(u => u.UserName.ToLower().Contains(query.ToLower()) && u.Id != currentUserId)
                 .Select(u => new UserSearchResultModel
                 {
                     Id = u.Id,
                     UserName = u.UserName,
-                    AvatarPath = u.AvatarPath,
+                    AvatarPath = u.AvatarPath ?? "",
                 })
                 .OrderBy(u => u.UserName)
                 .ToListAsync();

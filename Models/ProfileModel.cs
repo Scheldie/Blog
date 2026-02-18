@@ -37,5 +37,9 @@ namespace Blog.Models.Request
 
         public virtual IEnumerable<PostModel>? Posts { get; init; }
 
+        [NotMapped]
+        public bool RemoveAvatar { get; init; }
+
+
     }
 }

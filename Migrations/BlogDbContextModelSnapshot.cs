@@ -18,6 +18,9 @@ namespace Blog.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.4")
+                .HasAnnotation("Proxies:ChangeTracking", false)
+                .HasAnnotation("Proxies:CheckEquality", false)
+                .HasAnnotation("Proxies:LazyLoading", true)
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -43,8 +46,8 @@ namespace Blog.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -102,7 +105,7 @@ namespace Blog.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("FollowId")
+                    b.Property<int?>("FollowId")
                         .HasColumnType("integer");
 
                     b.Property<int>("FollowerId")
@@ -133,15 +136,15 @@ namespace Blog.Migrations
 
                     b.Property<string>("Path")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("Images");
                 });
@@ -188,8 +191,8 @@ namespace Blog.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(600)
+                        .HasColumnType("character varying(600)");
 
                     b.Property<int>("NotificationType")
                         .HasColumnType("integer");
@@ -223,7 +226,8 @@ namespace Blog.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(1500)
+                        .HasColumnType("character varying(1500)");
 
                     b.Property<int>("ImagesCount")
                         .HasColumnType("integer");
@@ -236,7 +240,8 @@ namespace Blog.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -317,7 +322,7 @@ namespace Blog.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
-                    b.Property<int>("PostId")
+                    b.Property<int?>("PostId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -335,18 +340,24 @@ namespace Blog.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AvatarId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("AvatarPath")
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Bio")
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -362,13 +373,18 @@ namespace Blog.Migrations
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("UserName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AvatarId")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });
@@ -401,7 +417,7 @@ namespace Blog.Migrations
             modelBuilder.Entity("Blog.Entities.Comment_Like", b =>
                 {
                     b.HasOne("Blog.Entities.Comment", "Comment")
-                        .WithMany("Comment_Likes")
+                        .WithMany("CommentLikes")
                         .HasForeignKey("CommentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -429,9 +445,7 @@ namespace Blog.Migrations
                 {
                     b.HasOne("Blog.Entities.Follower", "Follow")
                         .WithMany()
-                        .HasForeignKey("FollowId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("FollowId");
 
                     b.HasOne("Blog.Entities.User", "User")
                         .WithMany()
@@ -447,8 +461,8 @@ namespace Blog.Migrations
             modelBuilder.Entity("Blog.Entities.Image", b =>
                 {
                     b.HasOne("Blog.Entities.User", "User")
-                        .WithOne("Avatar")
-                        .HasForeignKey("Blog.Entities.Image", "UserId")
+                        .WithMany("Images")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -497,7 +511,7 @@ namespace Blog.Migrations
                         .IsRequired();
 
                     b.HasOne("Blog.Entities.Post", "Post")
-                        .WithMany("Post_Images")
+                        .WithMany("PostImages")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -516,7 +530,7 @@ namespace Blog.Migrations
                         .IsRequired();
 
                     b.HasOne("Blog.Entities.Post", "Post")
-                        .WithMany("Post_Likes")
+                        .WithMany("PostLikes")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -529,17 +543,25 @@ namespace Blog.Migrations
             modelBuilder.Entity("Blog.Entities.Post_View", b =>
                 {
                     b.HasOne("Blog.Entities.Post", "Post")
-                        .WithMany("Post_Views")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany("PostViews")
+                        .HasForeignKey("PostId");
 
                     b.Navigation("Post");
                 });
 
+            modelBuilder.Entity("Blog.Entities.User", b =>
+                {
+                    b.HasOne("Blog.Entities.Image", "Avatar")
+                        .WithOne()
+                        .HasForeignKey("Blog.Entities.User", "AvatarId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Avatar");
+                });
+
             modelBuilder.Entity("Blog.Entities.Comment", b =>
                 {
-                    b.Navigation("Comment_Likes");
+                    b.Navigation("CommentLikes");
 
                     b.Navigation("Replies");
                 });
@@ -553,19 +575,18 @@ namespace Blog.Migrations
                 {
                     b.Navigation("Comments");
 
-                    b.Navigation("Post_Images");
+                    b.Navigation("PostImages");
 
-                    b.Navigation("Post_Likes");
+                    b.Navigation("PostLikes");
 
-                    b.Navigation("Post_Views");
+                    b.Navigation("PostViews");
                 });
 
             modelBuilder.Entity("Blog.Entities.User", b =>
                 {
-                    b.Navigation("Avatar")
-                        .IsRequired();
-
                     b.Navigation("Comments");
+
+                    b.Navigation("Images");
 
                     b.Navigation("Posts");
                 });

@@ -1,23 +1,24 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
+using Blog.Data;
 using Microsoft.AspNetCore.Mvc;
-using Blog.Data.Interfaces;
 using Blog.Services;
 using Blog.Entities;
 using Blog.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Blog.Controllers
 {
     public class AuthorizationController : Controller
     {
-        private readonly IUserRepository _userRepository;
+        private readonly BlogDbContext _dbContext;
         private readonly ILogger<AuthorizationController> _logger;
 
-        public AuthorizationController(ILogger<AuthorizationController> logger, IUserRepository userRepository)
+        public AuthorizationController(ILogger<AuthorizationController> logger, BlogDbContext dbContext)
         {
             _logger = logger;
-            _userRepository = userRepository;
+            _dbContext = dbContext;
 
         }
         [HttpGet]
@@ -43,8 +44,8 @@ namespace Blog.Controllers
         {
             try
             {
-                var user = _userRepository.GetByEmail(loginModel.Email);
-                var hasher = new PasswordHasher();
+                var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Email == loginModel.Email);
+                var hasher = new PasswordHasherService();
                 if (user == null || !hasher.Verify(loginModel.Password, user.PasswordHash))
                 {
                     ModelState.AddModelError("", "Invalid credentials");
@@ -53,7 +54,7 @@ namespace Blog.Controllers
 
                 user.LastLoginAt = DateTime.UtcNow;
                 user.IsActive = true;
-                _userRepository.UpdateEntity(user);
+                _dbContext.Update(user);
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.Email),
@@ -95,12 +96,12 @@ namespace Blog.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (_userRepository.GetByEmail(signUpModel.Email) != null)
+                if (await _dbContext.Users.FirstOrDefaultAsync(x => x.Email == signUpModel.Email) != null)
                 {
                     ModelState.AddModelError("Email", "A user with this email already exists.");
                     return View(signUpModel);
                 }
-                var hasher = new PasswordHasher();
+                var hasher = new PasswordHasherService();
                 var passwordHash = hasher.Generate(signUpModel.Password);
                 var user = new User
                 {
@@ -112,8 +113,8 @@ namespace Blog.Controllers
                     LastUpdatedAt = DateTime.UtcNow
 
                 };
-                _userRepository.AddEntity(user);
-                _userRepository.Save();
+                await _dbContext.Users.AddAsync(user);
+                await _dbContext.SaveChangesAsync();
                 await Authenticate(signUpModel.Email);
 
                 return RedirectToAction("Index", "Login");

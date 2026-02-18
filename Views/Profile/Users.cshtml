@@ -13,7 +13,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
-    <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/profile1.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/post.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/comment.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/like.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/modal.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/carousel.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/gallery.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/search.css" asp-append-version="true" />
 </head>
 <body>
     <header>
@@ -59,40 +66,48 @@
             <!-- Попап редактирования профиля -->
             @if (Model.IsCurrentUser)
             {
-                <div id="editProfilePopup" class="popup">
-                    <div class="popup-content">
-                        <span class="close-btn">&times;</span>
+                <div class="modal" id="modal-edit-profile">
+                    <div class="modal__overlay"></div>
+
+                    <div class="modal__content modal-profile">
+                        <button class="modal__close">&times;</button>
+
                         <h2>Редактировать профиль</h2>
-                        <form id="editProfileForm" enctype="multipart/form-data">
-                            @Html.AntiForgeryToken()
-                            <div class="form-group avatar-group">
-                                <label for="avatar">Аватар:</label>
-                                <div class="avatar-upload">
-                                    <img id="avatarPreview" src="@(Model.AvatarPath ?? "~/img/Image.png")" alt="Текущий аватар" class="current-avatar">
-                                    <div class="upload-controls">
-                                        <input class="upload-btn" type="file" id="Avatar" name="avatar" accept="image/*">
-                                        <span class="file-name">Файл не выбран</span>
+                        <div id="profile-data"
+                             data-username="@Model.UserName"
+                             data-bio="@Model.Bio"
+                             data-avatar="@Model.AvatarPath">
+                        </div>
+
+                        <form id="edit-profile-form">
+
+                            <label for="profile-name">Имя:</label>
+                            <input type="text" id="profile-name" class="modal-input" required>
+
+                            <label for="profile-about">О себе:</label>
+                            <textarea id="profile-about" class="modal-textarea"></textarea>
+
+                            
+                            <div class="avatar-wrapper">
+                                <label for="profile-avatar-input" class="avatar-upload-area">
+                                    <div id="profile-avatar-preview" class="profile-avatar-preview"></div>
+
+                                    <div class="avatar-overlay">
+                                        <span class="camera-icon">📷</span>
                                     </div>
-                                </div>
+                                </label>
+                                <button type="button" id="avatar-remove-btn" class="avatar-remove-btn">×</button>
                             </div>
+                            <input type="file" id="profile-avatar-input" accept="image/*" hidden>
 
-                            <div class="form-group">
-                                <label for="UserName">Имя:</label>
-                                <input type="text" id="UserName" name="UserName" value="@Model.UserName" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="Bio">Информация о себе:</label>
-                                <textarea id="Bio" name="Bio" rows="4">@Model.Bio</textarea>
-                            </div>
-
-                            <div class="form-actions">
-                                <button type="button" class="cancel-btn">Отмена</button>
-                                <button type="submit" class="save-btn">Сохранить изменения</button>
+                            <div class="modal-actions">
+                                <button type="submit" class="modal-save-btn">Сохранить</button>
                             </div>
                         </form>
+
                     </div>
                 </div>
+
             }
         </div>
     </section>
@@ -106,24 +121,33 @@
             </button>
 
             <!-- Попап для добавления поста -->
-            <div id="add-publication-popup" class="popup-overlay">
-                <div class="popup-content">
-                    <span class="close-btn-add">&times;</span>
+            <div class="modal" id="modal-add-post">
+                <div class="modal__overlay"></div>
+
+                <div class="modal__content">
+                    <button class="modal__close">&times;</button>
+
                     <h2>Добавить пост</h2>
+
                     <form id="add-publication-form" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
-                        <label>Изображения (макс. 4):</label>
-                        <div class="images-preview" id="images-preview"></div>
+                        <label for="image">Изображения (до 4):</label>
                         <input type="file" id="image" name="images" multiple accept="image/*">
-                        <label>Заголовок:</label>
+
+                        <div class="images-preview" id="images-preview"></div>
+
+                        <label for="add-publication-title">Заголовок:</label>
                         <input type="text" id="add-publication-title" name="title" required>
-                        <label>Описание:</label>
-                        <textarea id="add-publication-description" name="description" required></textarea><br><br>
+
+                        <label for="add-publication-description">Описание:</label>
+                        <textarea id="add-publication-description" name="description" required></textarea>
 
                         <button type="submit" id="submit-add">Опубликовать</button>
                     </form>
                 </div>
             </div>
+
+
         </section>
     }
 
@@ -135,9 +159,12 @@
                 <div class="carousel-container">
                     @foreach (var post in Model.Posts.OrderByDescending(p => p.CreatedAt))
                     {
-                        @foreach (var postImage in post.PostImages.Take(1))
+                        if (post.PostImages != null)
                         {
-                            <img src="@Url.Content(postImage.Image.Path)" alt="Пост @post.Id" class="carousel-image" data-post-id="@post.Id">
+                            @foreach (var postImage in post.PostImages.Take(1))
+                            {
+                                <img src="@postImage.Image.Path" alt="Пост @post.Id" class="carousel-image" data-post-id="@post.Id">
+                            }
                         }
                     }
                 </div>
@@ -146,167 +173,93 @@
             </div>
         }
     </section>
-    <div class="popup-overlay" id="popup-overlay">
-        <div class="popup-content popup-delete-content">
-            <img src="" alt="Увеличенное фото" class="popup-image" id="popup-image">
-            <div class="popup-buttons">
-                <button class="popup-delete-btn">Удалить фото</button>
-                <button class="popup-close-btn">Закрыть</button>
-            </div>
-        </div>
-    </div>
 
     <div class="container">
         <main role="main" class="pb-3">
-            <div class="publication-container" id="posts-container">
-                @foreach (var post in Model.Posts.OrderByDescending(p=>p.CreatedAt))
-                {
-                    <div class="publication" data-post-id="@post.Id">
-                        <div class="publication-header">
-                            <div class="publication-user-info">
-                                <a asp-controller="Profile" asp-action="Users" asp-route-id="@Model.Id">
-                                    <img src="@(Model.AvatarPath ?? "~/img/profile.png")" class="publication-avatar">
-                                </a>
-                                <a asp-controller="Profile" asp-action="Users" asp-route-id="@Model.Id" class="publication-user-name">@Model.UserName</a>
-                            </div>
-                            <p class="publication-date">@post.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
-                            @if (Model.IsCurrentUser)
-                            {
-                                <div class="edit-icon-container">
-                                    <img src="~/img/edit-icon.png" data-post-id="@post.Id" class="edit-icon" alt="Редактировать">
-                                </div>
-                            }
-                        </div>
-
-                        <div class="publication-content">
-                            @if (!string.IsNullOrEmpty(post.Title))
-                            {
-                                <h2 class="publication-title">@post.Title</h2>
-                            }
-
-                            @{
-                                var imageCount = post.PostImages?.Count() ?? 0;
-                                var containerClass = imageCount switch
-                                {
-                                    1 => "post-images-container single-image",
-                                    2 => "post-images-container double-image",
-                                    _ => "post-images-container multiple-image"
-                                };
-                            }
-
-                            <div class="@containerClass">
-                                @if (post.PostImages?.Any() == true)
-                                {
-                                    @foreach (var postImage in post.PostImages!)
-                                    {
-                                        @if (postImage.Image?.Path != null)
-                                        {
-                                            <div class="post-image-item">
-                                                <img src="@Url.Content(postImage.Image.Path)"
-                                                alt="Изображение поста"
-                                                class="post-image">
-                                            </div>
-                                        }
-                                    }
-                                }
-                            </div>
-
-                            @if (!string.IsNullOrEmpty(post.Description))
-                            {
-                                <h3 class="publication-description">@post.Description</h3>
-                            }
-                        </div>
-
-                        <div class="post-bottom">
-                            <div class="comments-toggle">
-                                <img src="~/img/Chevron down.png" class="toggle-comments">
-                                <span class="comment-count">@(post.Comments?.Count() ?? 0)</span>
-                            </div>
-                            <div class="like-section" data-post-id="@post.Id">
-                                @Html.AntiForgeryToken()
-                                <img src="~/img/@((post.PostLikes?.Any(l => l.Like.User.Id == Model.WatcherId) == true) ? "Heart Active.png" : "Heart.png")"
-                                     class="like-icon @((post.PostLikes?.Any(l => l.Like.UserId == Model.WatcherId) == true) ? "active" : "")">
-                                <span class="like-count">@(post.PostLikes?.Count() ?? 0)</span>
-                            </div>
-                        </div>
-                        <div class="comments-section">
-                            <h3 class="comment-header">Комментарии:</h3>
-                            <div class="comments-list">
-                                
-                            </div>
-                            <textarea class="comment-area" placeholder="Введите ваш комментарий"></textarea>
-                            <button class="add-comment">Добавить комментарий</button>
-                        </div>
-                    </div>
-                }
+            <div class="publication-container" id="posts-container" data-user-id="@Model.Id">
+                
+                <div id="posts-sentinel"></div>
             </div>
+
 
             @if (Model.IsCurrentUser)
             {
                 <!-- Попап редактирования поста -->
-                <div id="edit-popup-container" class="edit-popup-container">
-                    <div class="edit-popup-overlay" id="edit-popup-overlay">
-                        <div class="edit-popup-content" id="edit-popup-content">
-                            <h3>Редактирование публикации</h3>
-                            <div class="edit-form">
-                                <input type="hidden" id="edit-post-id" value="">
+                <div class="modal" id="modal-edit-post">
+                    <div class="modal__overlay"></div>
 
-                                <label>Заголовок:</label>
-                                <input type="text" id="edit-title" class="edit-title">
+                    <div class="modal__content">
+                        <button class="modal__close">&times;</button>
 
-                                <label>Описание:</label>
-                                <textarea id="edit-description" class="edit-description"></textarea>
+                        <h2>Редактировать пост</h2>
 
-                                <label>Изображения (макс. 4):</label>
-                                <div class="images-preview" id="edit-images-preview"></div>
-                                <input type="file" id="edit-image-input" class="edit-image-input" multiple accept="image/*">
+                        <form id="edit-post-form">
 
-                                <div class="edit-buttons">
-                                    <button class="delete-post-btn" id="delete-post-btn">Удалить пост</button>
-                                    <div>
-                                        <button type="button" class="cancel-edit">Отмена</button>
-                                        <button type="button" class="save-edit">Сохранить</button>
-                                    </div>
-                                </div>
+                            <input type="hidden" id="edit-post-id">
+
+                            <label for="edit-title">Заголовок:</label>
+                            <input type="text" id="edit-title" class="modal-input" required>
+
+                            <label for="edit-description">Описание:</label>
+                            <textarea id="edit-description" class="modal-textarea" required></textarea>
+
+                            <label for="edit-image-input">Добавить изображения:</label>
+                            <input type="file" id="edit-image-input" multiple accept="image/*">
+
+                            <div id="edit-images-preview" class="images-preview"></div>
+
+                            <div class="modal-actions">
+                                <button type="button" id="delete-post-btn" class="modal-delete-btn">Удалить</button>
+                                <button type="submit" class="modal-save-btn">Сохранить</button>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
+
+
+
+
             }
 
             <!-- Попап галереи -->
-            <div id="galleryPopup" class="popup">
-                <div class="gallery-popup-content">
-                    <span class="close-btn-gallery">&times;</span>
-                    <div class="gallery-container">
-                        <img id="galleryCurrentImage" src="" class="gallery-image">
-                        <div class="gallery-controls">
-                            <button class="gallery-prev">&#10094;</button>
-                            <span id="galleryCounter">1/1</span>
-                            <button class="gallery-next">&#10095;</button>
-                        </div>
+            <div class="modal" id="modal-gallery">
+                <div class="modal__overlay"></div>
+
+                <div class="modal__content modal-gallery">
+                    <button class="modal__close">&times;</button>
+
+                    <img id="galleryCurrentImage" class="gallery-image" src="" alt="">
+
+                    <div class="gallery-controls">
+                        <button class="gallery-nav-btn gallery-prev">&#10094;</button>
+                        <span id="galleryCounter">1/1</span>
+                        <button class="gallery-nav-btn gallery-next">&#10095;</button>
                     </div>
                 </div>
             </div>
+            <!-- Попап галереи на карусели -->
+            <div class="modal" id="modal-photo-view">
+                <div class="modal__overlay"></div>
+
+                <div class="modal__content">
+                    <button class="modal__close">&times;</button>
+                    <img class="photo-view-image" id="photoViewImage" src="" alt="">
+                    <button class="photo-view-post-btn" id="photoViewPostBtn">Перейти к посту</button>
+                </div>
+            </div>
+
+
         </main>
     </div>
 
     @section Scripts {
+        <script type="module" src="~/js/src/main.js"></script>
         <script>
             var currentUserId = '@Model.Id';
             var isCurrentUser = @Json.Serialize(Model.IsCurrentUser);
         </script>
-        <script src="~/js/search.js"></script>
-        <script type="module" src="~/js/main.js"></script>
-        <script src="~/js/editProfilePopup.js"></script>
-        <script src="~/js/addPublicationPopup.js"></script>
-        <script src="~/js/carousel.js"></script>
-        <script src="~/js/gallery.js"></script>
-        <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 
-        @{
-            await Html.RenderPartialAsync("_ValidationScriptsPartial");
-        }
+       
     }
 </body>
 </html>

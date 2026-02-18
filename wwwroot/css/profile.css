@@ -260,7 +260,7 @@ ul {
     gap: 10px;
 }
 
-.save-edit, .cancel-edit {
+.save-edit{
     padding: 8px 15px;
     border-radius: 20px;
     cursor: pointer;
@@ -273,10 +273,7 @@ ul {
     color: white;
 }
 
-.cancel-edit {
-    background: #f44336;
-    color: white;
-}
+
 
 
 
@@ -595,10 +592,7 @@ ul {
     cursor: pointer;
 }
 
-.cancel-edit {
-    background: #ccc;
-    margin-right: 10px;
-}
+
 
 .save-edit {
     background: #4CAF50;
@@ -1853,6 +1847,7 @@ body {
     align-items: center;
 }
 
+
 #edit-popup-content {
     background-color: white;
     padding: 20px;
@@ -1970,3 +1965,347 @@ body {
     text-decoration: none;
     color: black;
 }
+
+/* === ГЛОБАЛЬНЫЕ ПОПАПЫ === */
+
+#edit-popup-container,
+#add-publication-popup,
+#galleryPopup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000; /* ВЫШЕ ХЕДЕРА */
+}
+
+#edit-popup-container.active,
+#add-publication-popup.active,
+#galleryPopup.active {
+    display: flex;
+}
+
+#edit-popup-overlay,
+#add-publication-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 4999;
+}
+
+#edit-popup-content,
+#add-publication-content {
+    position: relative;
+    z-index: 5001;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+}
+/* === ПОПАП РЕДАКТИРОВАНИЯ ПОСТА === */
+
+#edit-popup-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+}
+
+#edit-popup-container.active {
+    display: flex;
+}
+
+#edit-popup-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 4999;
+}
+
+#edit-popup-content {
+    position: relative;
+    z-index: 5001;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+
+
+/* === ПОПАП РЕДАКТИРОВАНИЯ ПОСТА === */
+
+#edit-popup-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+}
+
+#edit-popup-container.active {
+    display: flex;
+}
+
+#edit-popup-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 4999;
+}
+
+#edit-popup-content {
+    position: relative;
+    z-index: 5001;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 650px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+
+/* Крестик */
+.close-edit-popup {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    font-size: 28px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    z-index: 5002;
+}
+
+.close-edit-popup:hover {
+    color: #000;
+}
+
+/* Кнопки */
+.edit-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.right-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.cancel-edit {
+    background: #ccc;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+}
+
+.save-edit {
+    background: #4CAF50;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+}
+#add-publication-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0,0,0,0.6);
+    z-index: 5000;
+}
+
+#add-publication-popup.active {
+    display: flex;
+}
+
+#add-publication-popup .popup-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.close-btn-add {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    font-size: 28px;
+    cursor: pointer;
+    color: #666;
+}
+/* === ПОПАП ДОБАВЛЕНИЯ ПОСТА === */
+
+#add-publication-popup.add-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+}
+
+#add-publication-popup.active {
+    display: flex;
+}
+
+.add-popup-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 4999;
+}
+
+.add-popup-content {
+    position: relative;
+    z-index: 5001;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+
+.close-btn-add {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    font-size: 28px;
+    cursor: pointer;
+    color: #666;
+}
+.carousel-image {
+    transition: all 0.4s ease;
+}
+.carousel-image.active {
+    transform: scale(1.1);
+}
+
+.carousel-image.prev,
+.carousel-image.next {
+    transform: scale(0.9);
+    opacity: 0.7;
+}
+.carousel-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 6000;
+}
+
+.carousel-popup.active {
+    display: flex;
+}
+
+.carousel-popup-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    z-index: 5999;
+}
+
+.carousel-popup-content {
+    position: relative;
+    z-index: 6001;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.carousel-popup-image {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+.carousel-popup-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    font-size: 40px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+.carousel-popup-post-btn {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #3a6bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.highlight-post {
+    animation: highlightFlash 1.5s ease;
+}
+
+@keyframes highlightFlash {
+    0% { box-shadow: 0 0 0px 0px rgba(58,107,255,0.0); }
+    50% { box-shadow: 0 0 20px 5px rgba(58,107,255,0.6); }
+    100% { box-shadow: 0 0 0px 0px rgba(58,107,255,0.0); }
+}
+
+
+

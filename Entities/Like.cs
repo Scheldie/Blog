@@ -7,14 +7,14 @@ namespace Blog.Entities
     {
         public int Id { get; set; }
 
-        public int EntityId { get; set; }
+        public int EntityId { get; init; }
 
-        public virtual User User { get; set; }
+        public virtual required User User { get; init; }
 
-        public int UserId {  get; set; }
+        public int UserId {  get; init; }
 
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; init; }
 
-        public LikeType LikeType { get; set; }
+        public LikeType LikeType { get; init; }
     }
 }

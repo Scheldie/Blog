@@ -43,7 +43,15 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
-
+        
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ax@micro.kz
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "7313:80"
 
 volumes:
   blog_db_data:

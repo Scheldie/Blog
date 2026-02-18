@@ -76,7 +76,7 @@
                                 <div class="@containerClass">
                                     @if (post.PostImages?.Any() == true)
                                     {
-                                        @foreach (var postImage in post.PostImages!)
+                                        @foreach (var postImage in post.PostImages)
                                         {
                                             @if (postImage.Image?.Path != null)
                                             {
@@ -124,13 +124,10 @@
     </section>
 
     @section Scripts {
+        <script type="module" src="~/js/src/main.js"></script>
         <script>
             var currentUserId = '@User';
         </script>
-        <script src="~/js/search.js"></script>
-        <script src="~/js/feed.js"></script>
-        <script type="module" src="~/js/main.js"></script>
-        <script src="~/js/gallery.js"></script>
     }
 </body>
 </html>

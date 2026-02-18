@@ -36,4 +36,9 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\View\" />
+    <Folder Include="Views\Partial\" />
+  </ItemGroup>
+
 </Project>

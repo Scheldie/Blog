@@ -1,5 +1,4 @@
 ﻿using Blog.Data;
-using Blog.Data.Interfaces;
 using Blog.Entities;
 using Blog.Models;
 using Blog.Services;
@@ -14,27 +13,12 @@ namespace Blog.Controllers
     public class CommentController : Controller
     {
         private readonly BlogDbContext _context;
-        private readonly IWebHostEnvironment _env;
-        private readonly IUserRepository _userRepository;
-        private readonly IImageRepository _imageRepository;
-        private readonly IPostImageRepository _postImageRepository;
-        private readonly IPostRepository _postRepository;
         private readonly ILogger<CommentController> _logger;
-        private readonly IFileService _fileService;
-
-        public CommentController(BlogDbContext context, IWebHostEnvironment env,
-            IUserRepository userRepository, ILogger<CommentController> logger,
-            IPostRepository postRepository, IPostImageRepository postImageRepository,
-            IImageRepository imageRepository, IFileService fileService)
+        
+        public CommentController(BlogDbContext context, ILogger<CommentController> logger)
         {
             _context = context;
-            _env = env;
-            _userRepository = userRepository;
             _logger = logger;
-            _postRepository = postRepository;
-            _imageRepository = imageRepository;
-            _postImageRepository = postImageRepository;
-            _fileService = fileService;
         }
         [HttpGet]
         public async Task<IActionResult> GetComments(int postId)
@@ -46,7 +30,7 @@ namespace Blog.Controllers
                 var comments = await _context.Comments
                     .Where(c => c.PostId == postId && c.ParentId == null)
                     .Include(c => c.User)
-                    .Include(c => c.Comment_Likes)
+                    .Include(c => c.CommentLikes)
                     .Include(c => c.Replies)
                         .ThenInclude(r => r.User)
                     .Select(c => new
@@ -65,8 +49,8 @@ namespace Blog.Controllers
                         c.ReplyTo,
                         ReplyToId = c.ReplyTo,
                         CreatedAt = c.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
-                        LikesCount = c.Comment_Likes.Count(),
-                        IsLiked = userIdInt > 0 && c.Comment_Likes.Any(l => l.Like.UserId == userIdInt),
+                        LikesCount = c.CommentLikes == null ? 0 : c.CommentLikes.Count(),
+                        IsLiked = userIdInt > 0 && c.CommentLikes.Any(l => l.Like.UserId == userIdInt),
                         IsCurrentUser = c.User.Id == userIdInt && c.UserId == userIdInt,
                         IsReply = false,
                         Replies = c.Replies.Select(r => new
@@ -85,8 +69,8 @@ namespace Blog.Controllers
 
                             ReplyToId = r.ReplyTo,
                             ReplyToUser = _context.Comments.FirstOrDefault(c => c.Id == r.ReplyTo).User.UserName,
-                            LikesCount = r.Comment_Likes.Count(),
-                            IsLiked = userIdInt > 0 && r.Comment_Likes.Any(l => l.Like.UserId == userIdInt),
+                            LikesCount = r.CommentLikes.Count(),
+                            IsLiked = userIdInt > 0 && r.CommentLikes.Any(l => l.Like.UserId == userIdInt),
                             CreatedAt = r.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
                             IsCurrentUser = r.User.Id == userIdInt
                         })
@@ -94,7 +78,7 @@ namespace Blog.Controllers
                     .ToListAsync();
                 return Ok(comments.OrderByDescending(p => p.CreatedAt));
             }
-            catch (Exception ex)
+            catch (IOException ex)
             {
                 _logger.LogError(ex, "Error loading comments");
                 return StatusCode(500, new { error = "Failed to load comments. Please try again." });
@@ -107,31 +91,22 @@ namespace Blog.Controllers
         {
             try
             {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                int userId;
+                if (!Int32.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId)) return Unauthorized();
                 var user = await _context.Users.FindAsync(userId);
                 if (user == null) return Unauthorized();
 
                 int? rootParentId = null;
                 int? replyToId = null;
-                string replyToUsername = null;
 
                 if (dto.ParentId.HasValue)
                 {
                     var parentComment = await _context.Comments
                         .Include(c => c.User)
                         .FirstOrDefaultAsync(c => c.Id == dto.ParentId.Value);
-
                     if (parentComment == null) return BadRequest("Parent comment not found");
-
-                    // Root parent всегда будет самым верхним комментарием в цепочке
                     rootParentId = parentComment.ParentId ?? dto.ParentId;
-
-                    // ReplyToId - это ID комментария, на который непосредственно отвечаем
                     replyToId = dto.ParentId;
-
-                    // Получаем username автора комментария, на который отвечаем
-                    replyToUsername = parentComment.User.UserName;
-
                     dto.PostId = parentComment.PostId;
                 }
 
@@ -142,12 +117,21 @@ namespace Blog.Controllers
                     ParentId = rootParentId,  // Всегда указывает на корневой комментарий
                     ReplyTo = replyToId,   // Указывает на непосредственный комментарий-ответ
                     UserId = user.Id,
+                    User = user,
                     CreatedAt = DateTime.UtcNow,
                 };
 
                 _context.Comments.Add(comment);
                 await _context.SaveChangesAsync();
-                var replyToUser = _context.Comments?.FirstOrDefaultAsync(c => c.Id == comment.ReplyTo)?.Result?.User?.UserName;
+                string? replyToUserName = null;
+
+                if (replyToId.HasValue)
+                {
+                    replyToUserName = await _context.Comments
+                        .Where(c => c.Id == replyToId.Value)
+                        .Select(c => c.User.UserName)
+                        .FirstOrDefaultAsync();
+                }
                 return Ok(new
                 {
                     success = true,
@@ -157,7 +141,7 @@ namespace Blog.Controllers
                     CreatedAt = comment.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
                     ParentId = comment.ParentId,
                     ReplyToId = comment.ReplyTo,
-                    ReplyToUser = replyToUser,
+                    ReplyToUser = replyToUserName,
                 });
             }
             catch (Exception ex)
@@ -171,8 +155,9 @@ namespace Blog.Controllers
         {
             try
             {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                Comment comment = await _context.Comments
+                int userId;
+                if (!Int32.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId)) return Unauthorized();
+                Comment? comment = await _context.Comments
                     .FirstOrDefaultAsync(c => c.Id == model.Id && c.UserId == userId);
 
                 if (comment == null)
@@ -205,15 +190,15 @@ namespace Blog.Controllers
                 var replies = await _context.Comments
                     .Where(c => c.ParentId == commentId)
                     .Include(c => c.User)
-                    .Include(c => c.Comment_Likes)
+                    .Include(c => c.CommentLikes)
                     .Select(c => new
                     {
                         c.Id,
                         User = new { Id = c.UserId, c.User.UserName, c.User.AvatarPath },
                         c.Text,
                         CreatedAt = c.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
-                        LikesCount = c.Comment_Likes.Count(),
-                        IsLiked = userIdInt > 0 && c.Comment_Likes.Any(l => l.Like.UserId == userIdInt),
+                        LikesCount = c.CommentLikes.Count(),
+                        IsLiked = userIdInt > 0 && c.CommentLikes.Any(l => l.Like.UserId == userIdInt),
                         IsCurrentUser = c.User.Id == userIdInt && c.UserId == userIdInt,
                         IsReply = true,
                         ParentId = c.ParentId
@@ -234,7 +219,8 @@ namespace Blog.Controllers
         {
             try
             {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                int userId;
+                if (!Int32.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId)) return Unauthorized();
                 var comment = await _context.Comments
                     .Include(c => c.User)
                     .FirstOrDefaultAsync(c => c.Id == commentId);

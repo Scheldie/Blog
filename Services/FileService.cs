@@ -3,6 +3,7 @@
     public interface IFileService
     {
         Task<string> SaveFileAsync(IFormFile file);
+        Task<bool> DeleteFileAsync(String Path);
     }
 
     public class FileService : IFileService
@@ -33,5 +34,16 @@
 
             return $"/uploads/posts/{uniqueFileName}";
         }
+
+        public async Task<bool> DeleteFileAsync(String Path)
+        {
+            if (System.IO.File.Exists(Path))
+            {
+                System.IO.File.Delete(Path);
+                return true;
+            }
+            return false;
+        }
+        
     }
 }
