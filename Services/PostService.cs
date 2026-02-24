@@ -41,43 +41,35 @@ public class PostService
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
-        try
+
+        await _context.Posts.AddAsync(post);
+        var savedImages = new List<Image>();
+        if (request.ImageFiles != null)
         {
-            await _context.Posts.AddAsync(post);
-            var savedImages = new List<Image>();
-            if (request.ImageFiles != null)
+            foreach (var file in request.ImageFiles)
             {
-                foreach (var file in request.ImageFiles)
-                {
-                    if (file.Length == 0) continue;
-                    var imagePath = await _fileService.SaveFileAsync(file);
-                    if (string.IsNullOrEmpty(imagePath)) continue;
-                    var image = new Image(imagePath, DateTime.UtcNow, userId);
-                    savedImages.Add(image);
-                }
-
-                await _context.Images.AddRangeAsync(savedImages);
-                var postImages = new List<Post_Image>();
-                for (int i = 0; i < savedImages.Count; i++)
-                {
-                    postImages.Add(new Post_Image { Image = savedImages[i], Post = post, Order = i });
-                }
-
-                await _context.Post_Images.AddRangeAsync(postImages);
-                post.ImagesCount = savedImages.Count;
-                post.PostImages = postImages;
+                if (file.Length == 0) continue;
+                var imagePath = await _fileService.SaveFileAsync(file);
+                if (string.IsNullOrEmpty(imagePath)) continue;
+                var image = new Image(imagePath, DateTime.UtcNow, userId);
+                savedImages.Add(image);
             }
 
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-            return post;
+            await _context.Images.AddRangeAsync(savedImages);
+            var postImages = new List<Post_Image>();
+            for (int i = 0; i < savedImages.Count; i++)
+            {
+                postImages.Add(new Post_Image { Image = savedImages[i], Post = post, Order = i });
+            }
+
+            await _context.Post_Images.AddRangeAsync(postImages);
+            post.ImagesCount = savedImages.Count;
+            post.PostImages = postImages;
         }
-        catch (IOException ex)
-        {
-            _logger.LogError(ex, "Post creation failed");
-            await transaction.RollbackAsync();
-            return null;
-        }
+
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+        return post;
     }
 
     public async ValueTask<bool> EditPost(int userId, PostEditRequest model)
@@ -113,9 +105,6 @@ public class PostService
             var availableSlots = 4 - post.PostImages.Count;
             int order = post.PostImages.Count;
 
-            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "posts");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
 
             foreach (var file in model.NewImageFiles.Take(availableSlots))
             {
@@ -158,10 +147,7 @@ public class PostService
         foreach (var postImage in post.PostImages)
         {
             var filePath = Path.Combine(_env.WebRootPath, postImage.Image.Path.TrimStart('/'));
-            if (System.IO.File.Exists(filePath))
-            {
-                System.IO.File.Delete(filePath);
-            }
+            await _fileService.DeleteFileAsync(filePath);
         }
 
         await _context.Posts.Where(p => p.Id == postId).ExecuteDeleteAsync();
@@ -170,11 +156,10 @@ public class PostService
     }
 
 
-    public async Task<List<PostModel>> GetPostsPageAsync(int currentUserId,int userId, int page, int pageSize)
+    public async Task<List<PostModel>> GetPostsPageAsync(int currentUserId, string userName, int page, int pageSize)
     {
-        
         var posts = await _context.Posts
-            .Where(p => p.UserId == userId)
+            .Where(p => p.Author.UserName == userName)
             .Include(p => p.PostImages)
             .Include(p => p.PostLikes)
             .Include(p => p.Comments)
@@ -183,17 +168,16 @@ public class PostService
             .Take(pageSize)
             .ToListAsync();
         return posts.Select(p => p.ToModel(currentUserId)).ToList();
-
     }
+
     public async Task<PostModel> GetPostById(int userId, int postId)
     {
-        var post = await _context.Posts 
-            .Include(p => p.PostImages) 
-            .Include(p => p.PostLikes) 
-            .Include(p => p.Comments) 
+        var post = await _context.Posts
+            .Include(p => p.PostImages)
+            .Include(p => p.PostLikes)
+            .Include(p => p.Comments)
             .FirstOrDefaultAsync(p => p.Id == postId);
-        if (post == null) return new PostModel(){Title = "", Description = ""};
+        if (post == null) return new PostModel() { Title = "", Description = "" };
         return post.ToModel(userId);
-
     }
 }

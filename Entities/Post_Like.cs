@@ -2,6 +2,14 @@
 {
     public class Post_Like : IEntity
     {
+        public Post_Like() {}
+
+        public Post_Like(int entityId, int likeId, Like like)
+        {
+            PostId = entityId;
+            LikeId = likeId;
+            Like = like;
+        }
         public int Id { get; set; }
 
         public int PostId { get; init; }
@@ -10,6 +18,6 @@
 
         public int LikeId { get; init; }
 
-        public virtual required Like Like { get; init; }
+        public virtual Like? Like { get; init; }
     }
 }

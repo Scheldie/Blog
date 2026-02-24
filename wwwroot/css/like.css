@@ -14,7 +14,7 @@
 }
 /* active */
 .like-icon.active {
-    content: url('/img/Heart Active.png');
+    content: url('../img/Heart Active.png');
     transform: scale(1.15);
     animation: heartBeat 0.4s ease;
 }
@@ -50,7 +50,7 @@
     border: none;
     cursor: pointer;
     padding-left: 22px;
-    background: url('/img/Heart.png') no-repeat left center;
+    background: url('../img/Heart.png') no-repeat left center;
     background-size: 16px;
     font-size: 13px;
     color: #65676b;
@@ -62,7 +62,7 @@
 }
 
 .comment-like-btn.active {
-    background-image: url('/img/Heart Active.png');
+    background-image: url('../img/Heart Active.png');
     color: #ff2d55;
     font-weight: 600;
 }

@@ -6,14 +6,14 @@
         <!-- HEADER -->
         <div class="publication-header">
             <div class="publication-user-info">
-                <a asp-controller="Profile" asp-action="Users" asp-route-id="@post.User.Id">
+                <a asp-controller="Profile" asp-action="Users" asp-route-name="@post.User.UserName">
                     <img 
                         src="/img/placeholder-avatar.png"
                         data-src="@(post.User.AvatarPath ?? Url.Content("~/img/profile.png"))"
                         class="publication-avatar lazy">
                 </a>
 
-                <a asp-controller="Profile" asp-action="Users" asp-route-id="@post.User.Id"
+                <a asp-controller="Profile" asp-action="Users" asp-route-name="@post.User.UserName"
                    class="publication-user-name">@post.User.UserName</a>
             </div>
 

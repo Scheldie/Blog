@@ -1,10 +1,32 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Blog.Entities;
+using Blog.Models;
 
 namespace Blog.Entities
 {
     public class Comment : IEntity
     {
+        public CommentModel toModel
+        (bool? isLiked = false, bool? isCurrentUser = false, bool? isReply = false)
+        {
+            return new CommentModel()
+            {
+                Id = Id,
+                User = new CommentUserModel()
+                {
+                    UserName = User.UserName,
+                    AvatarPath = User.AvatarPath
+                },
+                Text = Text,
+                CreatedAt = CreatedAt,
+                LikesCount = CommentLikes.Count,
+                ParentId = ParentId,
+                IsLiked = isLiked ?? false,
+                IsCurrentUser = isCurrentUser ?? false,
+                IsReply = isReply ?? false,
+                RepliesCount = Replies?.Count ?? 0 
+            };
+        }
         public int Id { get; set; }
 
         public  virtual required User User { get; init; }
@@ -13,7 +35,7 @@ namespace Blog.Entities
         
         [MaxLength(2000)]
 
-        public string? Text { get; set; }
+        public string Text { get; set; }
 
         public virtual Post? Post {  get; init; }
         
@@ -31,7 +53,7 @@ namespace Blog.Entities
 
         public virtual ICollection<Comment_Like> CommentLikes { get; set; } = new List<Comment_Like>();
 
-        public virtual ICollection<Comment>? Replies { get; init; } = new List<Comment>();
+        public virtual ICollection<Comment> Replies { get; init; } = new List<Comment>();
 
 
     }

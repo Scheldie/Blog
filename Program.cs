@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Security.Claims;
+using Blog.Infrastructure.Middleware;
 
 var builder = WebApplication.CreateBuilder();
 
@@ -46,6 +47,9 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<PostService>();
+builder.Services.AddScoped<ProfileService>();
+builder.Services.AddScoped<CommentService>();
+builder.Services.AddScoped<LikeService>();
 
 builder.Services.AddCors(options =>
 {
@@ -83,6 +87,9 @@ app.UseCookiePolicy(new CookiePolicyOptions
 });
 
 app.UseAuthentication();
+
+app.UseMiddleware<RequireUserMiddleware>();
+
 app.UseAuthorization();
 
 
@@ -90,6 +97,22 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+app.Use(async (context, next) =>
+{
+    if (context.User.Identity?.IsAuthenticated == true) {
+        var path = context.Request.Path.Value?.ToLower();
+        
+        if (path == "/authorization/login")
+        {
+            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            context.Response.Redirect($"/Profile/Users/{userId}");
+            return;
+        }
+    }
+
+    await next();
+});
+
 
 
 

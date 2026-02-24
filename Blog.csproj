@@ -37,6 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Infrastructure\Filters\" />
     <Folder Include="Models\View\" />
     <Folder Include="Views\Partial\" />
   </ItemGroup>

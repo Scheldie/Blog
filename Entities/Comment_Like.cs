@@ -2,6 +2,15 @@
 {
     public class Comment_Like : IEntity
     {
+        public Comment_Like() {}
+
+        public Comment_Like(int entityId, int postId, int likeId, Like like)
+        {
+            CommentId = entityId;
+            PostId = postId;
+            LikeId = likeId;
+            Like = like;
+        }
         public int Id { get; set; }
 
         public int PostId { get; init; }
@@ -14,7 +23,7 @@
 
         public int LikeId { get; init; }
 
-        public  virtual required Like Like { get; init; }
+        public  virtual Like? Like { get; init; }
     }
 }
 

@@ -22,7 +22,7 @@
             `;
 
             el.onclick = () => {
-                window.location.href = `/Profile/Users/${user.id}`;
+                window.location.href = `/Profile/User?name=${user.userName}`;
             };
 
             container.appendChild(el);

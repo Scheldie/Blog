@@ -26,7 +26,7 @@
     <header>
         <nav class="index-header">
             <ul class="header">
-                <li><a asp-controller="Profile" asp-action="Feed"><img src="~/img/blog.png" class="logo"></a></li>
+                <li><a asp-controller="Feed" asp-action="Feed"><img src="~/img/blog.png" class="logo"></a></li>
                 <li class="search-container">
                     <input type="text" id="userSearch" placeholder="Поиск пользователей..." autocomplete="off">
                     <div id="searchResults" class="search-results-dropdown">
@@ -39,7 +39,9 @@
                         <img src="~/img/profile.png" class="profile-icon">
                     </a>
                 </li>
-                <li class="log-out-li"><a asp-controller="Profile" asp-action="Logout"><img src="~/img/Log out.png" class="log-out-icon"></a></li>
+                <li class="log-out-li"><a asp-controller="Profile" asp-action="Logout">
+                    <img src="~/img/Log out.png" class="log-out-icon">
+                </a></li>
             </ul>
         </nav>
     </header>
@@ -176,7 +178,7 @@
 
     <div class="container">
         <main role="main" class="pb-3">
-            <div class="publication-container" id="posts-container" data-user-id="@Model.Id">
+            <div class="publication-container" id="posts-container" data-user-name="@Model.UserName">
                 
                 <div id="posts-sentinel"></div>
             </div>
@@ -255,7 +257,6 @@
     @section Scripts {
         <script type="module" src="~/js/src/main.js"></script>
         <script>
-            var currentUserId = '@Model.Id';
             var isCurrentUser = @Json.Serialize(Model.IsCurrentUser);
         </script>
 

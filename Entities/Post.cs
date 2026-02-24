@@ -30,7 +30,7 @@ namespace Blog.Entities
         public int Id { get; set; }
         [MaxLength(200)]
         public required string Title { get; set; }
-        [MaxLength(1500)]
+        [MaxLength(6000)]
         public required string Description { get; set; } 
         public  virtual required User Author { get; set; }
         public int UserId { get; set; }

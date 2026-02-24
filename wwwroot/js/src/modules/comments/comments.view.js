@@ -8,9 +8,13 @@ export const CommentsView = {
         const el = document.createElement('div');
         el.className = 'comment';
         el.dataset.id = comment.id;
-        el.dataset.userId = comment.user.id;
         el.dataset.parentId = comment.parentId || '';
         el.dataset.replyToId = comment.replyToId || '';
+        if (!comment.user) {
+            console.error("Comment has no user:", comment);
+            return document.createElement('div'); 
+        }
+
 
         const replyTo = comment.replyToUser
             ? `<span class="reply-to">@${comment.replyToUser}</span>`
@@ -18,13 +22,13 @@ export const CommentsView = {
 
         el.innerHTML = `
             <div class="comment-header">
-                <a href="/Profile/Users/${comment.user.id}">
+                <a href="/Profile/User?name=${comment.user.userName}">
                     <img 
                         src="/img/placeholder-avatar.png"
                         data-src="${comment.user.avatarPath || '/img/default-avatar.png'}"
                         class="comment-avatar lazy">
                 </a>
-                <a href="/Profile/Users/${comment.user.id}" class="comment-username">${comment.user.userName}</a>
+                <a href="/Profile/User?name=${comment.user.userName}" class="comment-username">${comment.user.userName}</a>
                 ${replyTo}
                 <span class="date">${comment.createdAt}</span>
 
@@ -49,7 +53,7 @@ export const CommentsView = {
             <div class="replies-container"> 
                 <div class="toggle-replies"> 
                     <img src="/img/Chevron down.png" class="toggle-icon"> 
-                    <span class="replies-count">${comment.replies?.length || 0} ответов</span> 
+                    <span class="replies-count">${comment.repliesCount || 0} ответов</span> 
                 </div> 
                 <div class="replies-list" style="display:none;"></div> 
             </div>` : ''}

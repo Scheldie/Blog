@@ -22,12 +22,13 @@ export function initCommentsController(root = document) {
             const newComment = await CommentsService.add(postId, text);
 
             const list = post.querySelector('.comments-list');
-            list.appendChild(CommentsView.renderComment(newComment));
+            list.appendChild(CommentsView.renderComment(newComment.result));
 
             textarea.value = '';
 
             initLazyImages();
-            initCommentsController(list);
+            initCommentsController(post);
+
         };
     });
 
@@ -78,7 +79,7 @@ export function initCommentsController(root = document) {
                 const newReply = await CommentsService.add(postId, text, id);
 
                 const list = comment.querySelector('.replies-list');
-                list.appendChild(CommentsView.renderComment(newReply));
+                list.appendChild(CommentsView.renderComment(newReply.result));
 
                 initLazyImages();
                 initCommentsController(list);

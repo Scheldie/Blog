@@ -1,14 +1,25 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Blog.Entities;
 
-namespace Blog.Models.Request
+namespace Blog.Models
 {
-    public class ProfileModel
+    public sealed class ProfileModel
     {
-        public int Id { get; init; }
+        public ProfileModel(User user, bool isCurrentUser)
+        {
+            UserName = user.UserName;
+            Email = isCurrentUser ? user.Email : null;
+            Bio = user.Bio;
+            UserName = user.UserName;
+            AvatarPath = user.AvatarPath;
+            IsCurrentUser = isCurrentUser;
+            WatcherId = user.Id;
+            IsActive = user.IsActive;
+        }
 
         [Display(Name = "User Name")]
-        public required string UserName { get; init; }
+        public string UserName { get; init; }
 
         [EmailAddress]
         public string? Email { get; init; }
@@ -35,7 +46,7 @@ namespace Blog.Models.Request
         [Display(Name = "Watcher")]
         public int? WatcherId { get; init; }
 
-        public virtual IEnumerable<PostModel>? Posts { get; init; }
+        public IEnumerable<PostModel>? Posts { get; init; }
 
         [NotMapped]
         public bool RemoveAvatar { get; init; }

@@ -17,9 +17,6 @@
 
         public async Task<string> SaveFileAsync(IFormFile file)
         {
-            Console.WriteLine($"WebRootPath: {_env.WebRootPath}");
-            Console.WriteLine($"File name: {file?.FileName}");
-            Console.WriteLine($"File size: {file?.Length}");
             if (file == null || file.Length == 0)
                 throw new ArgumentException("Файл не может быть пустым");
 

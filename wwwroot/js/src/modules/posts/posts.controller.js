@@ -12,7 +12,7 @@ export function initPostsController() {
 
     const container = document.getElementById('posts-container');
     if (!container) return; 
-    const profileUserId = container.dataset.userId;
+    const profileUserName = container.dataset.userName;
 
     const addForm = document.getElementById('add-publication-form');
     const addImageInput = document.getElementById('image');
@@ -87,7 +87,7 @@ export function initPostsController() {
 
             loading = true;
 
-            const res = await fetch(`/Post/LoadPosts?userId=${profileUserId}&page=${page}`);
+            const res = await fetch(`/Post/LoadPosts?userName=${profileUserName}&page=${page}`);
             const html = await res.text();
 
             if (html.trim().length > 0) {

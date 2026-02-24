@@ -7,31 +7,28 @@ namespace Blog.Models
     {
         public int Id { get; set; }
 
-        public virtual User? User { get; set; }
-        public string? UserName => User?.UserName;
-        public string? AvatarPath => User?.AvatarPath;
+        public virtual CommentUserModel? User { get; set; }
 
         [Required]
-        public int UserId { get; set; }
-
-        [Required]
-        [StringLength(500, MinimumLength = 1)]
-        public required string Text { get; set; }
-
-        public virtual Entities.Post? Post { get; set; }
-        [Required]
-        public int PostId { get; set; }
-
-        public int? ParentId { get; set; }  
-        public virtual Comment? Parent { get; set; }
+        [StringLength(600, MinimumLength = 1)]
+        public required string? Text { get; set; }
 
         [Required]
         public DateTime CreatedAt { get; set; }
-        public string CreatedAtFormatted => CreatedAt.ToString("dd.MM.yyyy HH:mm");
-
-        public DateTime UpdatedAt { get; set; }
-
-        public virtual IEnumerable<Comment_Like>? CommentLikes { get; set; }
         
+        public int LikesCount { get; set; }
+        public int? ParentId { get; set; }
+        public bool IsLiked { get; set; }
+        public bool IsCurrentUser { get; set; }
+        public bool IsReply { get; set; }
+
+        public int RepliesCount { get; set; } = 0;
+
+
+    }
+    public class CommentUserModel
+    {
+        public string? UserName { get; set; } 
+        public string? AvatarPath { get; set; }
     }
 }
