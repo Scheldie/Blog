@@ -19,7 +19,7 @@ public class ProfileService
         _fileService = fileService;
     }
 
-    public async ValueTask<bool> EditProfile(int userId, ProfileEditRequest model)
+    public async ValueTask<bool> EditProfile(int userId, ProfileEditModel model)
     {
         var user = await _context.Users.FindAsync(userId);
         if (user == null) return false;
@@ -46,30 +46,26 @@ public class ProfileService
         await _context.SaveChangesAsync();
         return true;
     }
-    public async Task<ProfileModel> GetUser(int currentUserId, string? name)
+    public async Task<ProfileModel?> GetUser(int currentUserId, string? name)
     {
-        var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == currentUserId);
-        User? user;
+        var currentUser = await _context.Users.FirstAsync(u => u.Id == currentUserId);
+        User user;
         if (name == null) user = currentUser;
         else user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == name) ?? currentUser;
         var isCurrentUser = user?.Id == currentUserId;
         currentUser.IsActive = true;
         currentUser.LastActiveAt = DateTime.UtcNow;
-        var posts = await _context.Posts
-            .Include(p => p.PostImages)
-            .ThenInclude(pi => pi.Image)
-            .Include(pl => pl.PostLikes)
-            .Where(p => p.UserId == user.Id)
-            .ToListAsync();
+        if (user == null) return null;
         await _context.SaveChangesAsync();
-        return new ProfileModel(user, isCurrentUser) {Posts = posts.Select(p => p.ToModel(currentUserId)).ToList()};
+        return new ProfileModel(user, isCurrentUser);
     }
-    public async Task<bool> Logout(int userId)
+    public async ValueTask<bool> Logout(int userId)
     {
         var user = await _context.Users.FindAsync(userId);
         if (user == null) return false;
         user.IsActive = false;
         await _context.SaveChangesAsync();
         return true;
+        
     }
 }

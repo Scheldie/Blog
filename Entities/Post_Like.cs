@@ -4,11 +4,10 @@
     {
         public Post_Like() {}
 
-        public Post_Like(int entityId, int likeId, Like like)
+        public Post_Like(int entityId, int likeId)
         {
             PostId = entityId;
             LikeId = likeId;
-            Like = like;
         }
         public int Id { get; set; }
 

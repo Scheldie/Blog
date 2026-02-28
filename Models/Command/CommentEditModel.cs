@@ -2,7 +2,7 @@
 
 namespace Blog.Models.Request;
 
-public class CommentEditRequest
+public class CommentEditModel
 {
     public int Id { get; set; }
     [Required]

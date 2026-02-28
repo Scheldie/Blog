@@ -161,11 +161,11 @@
                 <div class="carousel-container">
                     @foreach (var post in Model.Posts.OrderByDescending(p => p.CreatedAt))
                     {
-                        if (post.PostImages != null)
+                        if (post.Images != null)
                         {
-                            @foreach (var postImage in post.PostImages.Take(1))
+                            @foreach (var postImage in post.Images.Take(1))
                             {
-                                <img src="@postImage.Image.Path" alt="Пост @post.Id" class="carousel-image" data-post-id="@post.Id">
+                                <img src="@postImage" alt="Пост @post.Id" class="carousel-image" data-post-id="@post.Id">
                             }
                         }
                     }

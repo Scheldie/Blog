@@ -2,7 +2,7 @@
 
 namespace Blog.Models.Request;
 
-public class PostCreateRequest
+public class PostCreateModel
 {
     [StringLength(200, MinimumLength = 1, ErrorMessage = "Длина заголовка должна быть от 1 до 200 символов")]
     public required string Title { get; set; }

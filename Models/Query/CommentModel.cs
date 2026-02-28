@@ -7,7 +7,7 @@ namespace Blog.Models
     {
         public int Id { get; set; }
 
-        public virtual CommentUserModel? User { get; set; }
+        public CommentUserModel? User { get; set; }
 
         [Required]
         [StringLength(600, MinimumLength = 1)]

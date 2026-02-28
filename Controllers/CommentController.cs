@@ -15,7 +15,6 @@ namespace Blog.Controllers
             var userId = User.GetUserId();
             return Ok(await service.LoadComments(
                 c => c.PostId == postId && c.ParentId == null,
-                true,
                 false,
                 userId
             ));
@@ -28,7 +27,6 @@ namespace Blog.Controllers
             var userId = User.GetUserId();
             return Ok(await service.LoadComments(
                 c => c.ParentId == commentId,
-                false,
                 true,
                 userId
             ));
@@ -36,7 +34,7 @@ namespace Blog.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddComment([FromBody] CommentCreateRequest model)
+        public async Task<IActionResult> AddComment([FromBody] CommentCreateModel model)
         {
             var userId = User.GetUserId();
             var result = await service.AddComment(model, userId);
@@ -47,7 +45,7 @@ namespace Blog.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> EditComment([FromBody] CommentEditRequest model)
+        public async Task<IActionResult> EditComment([FromBody] CommentEditModel model)
         {
             var userId = User.GetUserId();
             if(await service.EditComment(model, userId)) return Ok(new { success = true });

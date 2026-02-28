@@ -5,18 +5,69 @@
 namespace Blog.Migrations
 {
     /// <inheritdoc />
-    public partial class FixPostImageRelation : Migration
+    public partial class FixBugAndAddCommentTrigger : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Followers_Followers_FollowId",
-                table: "Followers");
+            migrationBuilder.Sql(@"
+            CREATE OR REPLACE FUNCTION update_comments_count()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                -- Если вставка комментария
+                IF (TG_OP = 'INSERT') THEN
+                    UPDATE ""Posts""
+                    SET ""CommentsCount"" = ""CommentsCount"" + 1
+                    WHERE ""Id"" = NEW.""PostId"";
+                    RETURN NEW;
+                END IF;
+
+                -- Если удаление комментария
+                IF (TG_OP = 'DELETE') THEN
+                    UPDATE ""Posts""
+                    SET ""CommentsCount"" = ""CommentsCount"" - 1
+                    WHERE ""Id"" = OLD.""PostId"";
+                    RETURN OLD;
+                END IF;
+
+                -- Если обновление PostId у комментария
+                IF (TG_OP = 'UPDATE') THEN
+                    -- уменьшить у старого поста
+                    IF (OLD.""PostId"" IS NOT NULL) THEN
+                        UPDATE ""Posts""
+                        SET ""CommentsCount"" = ""CommentsCount"" - 1
+                        WHERE ""Id"" = OLD.""PostId"";
+                    END IF;
+
+                    -- увеличить у нового поста
+                    IF (NEW.""PostId"" IS NOT NULL) THEN
+                        UPDATE ""Posts""
+                        SET ""CommentsCount"" = ""CommentsCount"" + 1
+                        WHERE ""Id"" = NEW.""PostId"";
+                    END IF;
+
+                    RETURN NEW;
+                END IF;
+
+                RETURN NULL;
+            END;
+            $$ LANGUAGE plpgsql;
+        ");
+
+            migrationBuilder.Sql(@"
+            CREATE TRIGGER comments_count_trigger
+            AFTER INSERT OR DELETE OR UPDATE OF ""PostId""
+            ON ""Comments""
+            FOR EACH ROW
+            EXECUTE FUNCTION update_comments_count();
+        ");
+        
+
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Post_Views_Posts_PostId",
                 table: "Post_Views");
+            
 
             migrationBuilder.AlterColumn<string>(
                 name: "UserName",
@@ -65,6 +116,12 @@ namespace Blog.Migrations
                 oldType: "text",
                 oldNullable: true);
 
+            migrationBuilder.AddColumn<int>(
+                name: "AvatarId",
+                table: "Users",
+                type: "integer",
+                nullable: true);
+
             migrationBuilder.AlterColumn<string>(
                 name: "Title",
                 table: "Posts",
@@ -77,19 +134,23 @@ namespace Blog.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Description",
                 table: "Posts",
-                type: "character varying(1500)",
-                maxLength: 1500,
+                type: "character varying(6000)",
+                maxLength: 6000,
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "text");
 
-            migrationBuilder.AlterColumn<int>(
-                name: "PostId",
-                table: "Post_Views",
+            migrationBuilder.AddColumn<int>(
+                name: "CommentsCount",
+                table: "Posts",
                 type: "integer",
-                nullable: true,
-                oldClrType: typeof(int),
-                oldType: "integer");
+                nullable: false,
+                defaultValue: 0);
+
+            migrationBuilder.DropColumn(
+                name: "PostId",
+                table: "Post_Views");
+
 
             migrationBuilder.AlterColumn<string>(
                 name: "Message",
@@ -108,49 +169,57 @@ namespace Blog.Migrations
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "text");
-
-            migrationBuilder.AlterColumn<int>(
-                name: "FollowId",
-                table: "Followers",
-                type: "integer",
-                nullable: true,
-                oldClrType: typeof(int),
-                oldType: "integer");
+            
 
             migrationBuilder.AlterColumn<string>(
                 name: "Text",
                 table: "Comments",
                 type: "character varying(2000)",
                 maxLength: 2000,
-                nullable: true,
+                nullable: false,
                 oldClrType: typeof(string),
                 oldType: "text");
+            
 
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_AvatarId",
+                table: "Users",
+                column: "AvatarId",
+                unique: true);
+            
             migrationBuilder.AddForeignKey(
-                name: "FK_Followers_Followers_FollowId",
-                table: "Followers",
-                column: "FollowId",
-                principalTable: "Followers",
-                principalColumn: "Id");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Post_Views_Posts_PostId",
-                table: "Post_Views",
-                column: "PostId",
-                principalTable: "Posts",
-                principalColumn: "Id");
+                name: "FK_Users_Images_AvatarId",
+                table: "Users",
+                column: "AvatarId",
+                principalTable: "Images",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.SetNull);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            
+            migrationBuilder.Sql(@"DROP TRIGGER IF EXISTS comments_count_trigger ON ""Comments"";"); 
+            migrationBuilder.Sql(@"DROP FUNCTION IF EXISTS update_comments_count();");
+            
             migrationBuilder.DropForeignKey(
-                name: "FK_Followers_Followers_FollowId",
-                table: "Followers");
+                name: "FK_Users_Images_AvatarId",
+                table: "Users");
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_Post_Views_Posts_PostId",
-                table: "Post_Views");
+            migrationBuilder.DropIndex(
+                name: "IX_Users_AvatarId",
+                table: "Users");
+            
+
+            migrationBuilder.DropColumn(
+                name: "AvatarId",
+                table: "Users");
+
+            migrationBuilder.DropColumn(
+                name: "CommentsCount",
+                table: "Posts");
+            
 
             migrationBuilder.AlterColumn<string>(
                 name: "UserName",
@@ -214,18 +283,9 @@ namespace Blog.Migrations
                 type: "text",
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "character varying(1500)",
-                oldMaxLength: 1500);
-
-            migrationBuilder.AlterColumn<int>(
-                name: "PostId",
-                table: "Post_Views",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0,
-                oldClrType: typeof(int),
-                oldType: "integer",
-                oldNullable: true);
+                oldType: "character varying(6000)",
+                oldMaxLength: 6000);
+            
 
             migrationBuilder.AlterColumn<string>(
                 name: "Message",
@@ -246,43 +306,23 @@ namespace Blog.Migrations
                 oldClrType: typeof(string),
                 oldType: "character varying(200)",
                 oldMaxLength: 200);
-
-            migrationBuilder.AlterColumn<int>(
-                name: "FollowId",
-                table: "Followers",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0,
-                oldClrType: typeof(int),
-                oldType: "integer",
-                oldNullable: true);
+            
 
             migrationBuilder.AlterColumn<string>(
                 name: "Text",
                 table: "Comments",
                 type: "text",
                 nullable: false,
-                defaultValue: "",
                 oldClrType: typeof(string),
                 oldType: "character varying(2000)",
-                oldMaxLength: 2000,
-                oldNullable: true);
+                oldMaxLength: 2000);
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Followers_Followers_FollowId",
-                table: "Followers",
-                column: "FollowId",
-                principalTable: "Followers",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Post_Views_Posts_PostId",
-                table: "Post_Views",
-                column: "PostId",
-                principalTable: "Posts",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+            migrationBuilder.CreateIndex(
+                name: "IX_Images_UserId",
+                table: "Images",
+                column: "UserId",
+                unique: true);
+            
         }
     }
 }

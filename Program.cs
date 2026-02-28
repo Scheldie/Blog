@@ -28,19 +28,6 @@ builder.Services.AddDbContext<BlogDbContext>
 
 
 var jwtOptions = builder.Configuration.GetSection("JwtConfig").Get<JwtOptions>();
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-})
-.AddCookie(options =>
-{
-    options.LoginPath = "/Authorization/Login";
-    options.AccessDeniedPath = "/Home/AccessDenied";
-    options.ExpireTimeSpan = TimeSpan.FromDays(7);
-    options.Cookie.HttpOnly = true;
-    options.SlidingExpiration = true;   
-});
 
 
 builder.Services.AddAuthorization();
@@ -50,6 +37,39 @@ builder.Services.AddScoped<PostService>();
 builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<CommentService>();
 builder.Services.AddScoped<LikeService>();
+builder.Services.AddScoped<SearchService>();
+builder.Services.AddSingleton(new AuthOptions
+{
+    LockoutMaxFailedAccessAttempts = 5,
+    LockoutDuration = TimeSpan.FromMinutes(15),
+    CookieLifetime = TimeSpan.FromDays(7)
+});
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<AuthorizationService>();
+
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/login";
+        options.LogoutPath = "/logout";
+        options.AccessDeniedPath = "/access-denied";
+
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.Name = ".Blog.Auth";
+
+        options.SlidingExpiration = true;
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
+    });
+
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "RequestVerificationToken";
+});
+
 
 builder.Services.AddCors(options =>
 {
@@ -88,9 +108,9 @@ app.UseCookiePolicy(new CookiePolicyOptions
 
 app.UseAuthentication();
 
-app.UseMiddleware<RequireUserMiddleware>();
 
 app.UseAuthorization();
+app.UseMiddleware<RequireUserMiddleware>();
 
 
 
@@ -102,10 +122,10 @@ app.Use(async (context, next) =>
     if (context.User.Identity?.IsAuthenticated == true) {
         var path = context.Request.Path.Value?.ToLower();
         
-        if (path == "/authorization/login")
+        if (path == "/login")
         {
-            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            context.Response.Redirect($"/Profile/Users/{userId}");
+            var userName = context.User.FindFirstValue(ClaimTypes.Name);
+            context.Response.Redirect($"/Profile/User?name={userName}");
             return;
         }
     }
@@ -142,6 +162,8 @@ app.Run();
 
 public class AuthOptions
 {
-    public const string ISSUER = "MyAuthServer";
-    public const string AUDIENCE = "MyAuthClient";
+    public int LockoutMaxFailedAccessAttempts { get; set; } = 5;
+    public TimeSpan LockoutDuration { get; set; } = TimeSpan.FromMinutes(15);
+    public TimeSpan CookieLifetime { get; set; } = TimeSpan.FromDays(7);
 }
+

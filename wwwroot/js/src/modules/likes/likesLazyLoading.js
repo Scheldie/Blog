@@ -1,4 +1,6 @@
-﻿export function initLikesForNewPosts(root = document) {
+﻿import {LikesService} from "../../services/likes.service.js";
+
+export function initLikesForNewPosts(root = document) {
     root.querySelectorAll('.like-section').forEach(section => {
         if (section.dataset.bound) return;
         section.dataset.bound = "1";
@@ -8,10 +10,7 @@
             const icon = section.querySelector('.like-icon');
             const count = section.querySelector('.like-count');
 
-            const result = await PostsService.toggleLike(postId);
-
-            icon.classList.toggle('active', result.isLiked);
-            count.textContent = result.likesCount;
+            
         });
     });
 }

@@ -20,6 +20,7 @@
         <main role="main" class="pb-3">
             <div class="form-div">
                 <form class="initial-form">
+                    @Html.AntiForgeryToken()
                     <input asp-for="Email" name="Email" placeholder="Email" class="data-account form-element">
                     <div class="buttons-div">
                         <a><button asp-area="" asp-controller="Authorization" asp-action="LogIn" class="button forgotten-cancel-button form-element"><span class="registration-button-title">Cancel</span></button></a>

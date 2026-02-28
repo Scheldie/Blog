@@ -23,9 +23,19 @@ namespace Blog.Controllers
         {
             var userId = User.GetUserId();
             await profileService.Logout(userId);
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Index", "Home");
+
+            await HttpContext.SignOutAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new AuthenticationProperties
+                {
+                    ExpiresUtc = DateTime.UtcNow.AddDays(-1),
+                    IsPersistent = false,
+                    AllowRefresh = false
+                });
+
+            return RedirectToAction("Login", "Authorization");
         }
+
 
         [Route("/Profile/User")]
         [Authorize]
@@ -36,7 +46,7 @@ namespace Blog.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditProfile(ProfileEditRequest model)
+        public async Task<IActionResult> EditProfile(ProfileEditModel model)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);

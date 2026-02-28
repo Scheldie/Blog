@@ -17,14 +17,24 @@ public class LikeService(
         var entityId = model.IsComment ? model.CommentId : model.PostId;
         if (entityId == null) return new(false, 0);
         if (!await EntityExists(model)) return new (false, 0);
-
         var user =  await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         var likeType = model.IsComment ? LikeType.Comment : LikeType.Post;
+        dynamic entity;
+        if (likeType != LikeType.Comment) entity = await context.Posts.FirstAsync(p => p.Id == entityId);
+        else entity = await context.Comments.FirstAsync(c => c.Id == entityId);
 
         var like = await GetExistingLike(entityId.Value, userId, likeType);
 
-        if (like == null) await AddLike(entityId.Value, userId, likeType, model.PostId, user);
-        else context.Likes.Remove(like);
+        if (like == null)
+        {
+            await AddLike(entityId.Value, userId, likeType, model.PostId, user);
+            entity.LikesCount++;
+        }
+        else
+        {
+            context.Likes.Remove(like);
+            entity.LikesCount--;
+        }
 
         await context.SaveChangesAsync();
 
@@ -56,11 +66,11 @@ public class LikeService(
 
         if (type == LikeType.Comment)
         {
-            await context.Comment_Likes.AddAsync(new Comment_Like(entityId, postId, like.Id, like));
+            await context.Comment_Likes.AddAsync(new Comment_Like(entityId, postId, like.Id));
         }
         else
         {
-            await context.Post_Likes.AddAsync(new Post_Like(entityId, like.Id, like));
+            await context.Post_Likes.AddAsync(new Post_Like(entityId, like.Id));
         }
     }
 

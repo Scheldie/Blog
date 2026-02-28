@@ -8,13 +8,10 @@ using System.Text;
 
 namespace Blog.Services
 {
-    public class JwtProvider
+    public class JwtProvider(IOptions<JwtOptions> options)
     {
-        private readonly JwtOptions _options;
-        public JwtProvider(IOptions<JwtOptions> options) 
-        { 
-            _options = options.Value;
-        }
+        private readonly JwtOptions _options = options.Value;
+
         public string GenerateToken(User user)
         {
             Claim[] claims = [new("userId", user.Id.ToString())];

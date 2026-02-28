@@ -1,5 +1,7 @@
 ﻿using System.Security.Claims;
 using Blog.Data;
+using Blog.Infrastructure.Extensions;
+using Blog.Models;
 using Blog.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,32 +11,32 @@ namespace Blog.Controllers;
 public class FeedController : Controller
 {
     private readonly BlogDbContext _context;
+    private readonly PostService _postService;
 
-
-    public FeedController(BlogDbContext context)
+    public FeedController(BlogDbContext context, PostService postService)
     {
         _context = context;
+        _postService = postService;
     }
+
     [Route("/Feed")]
     [HttpGet]
-    public async Task<IActionResult> Feed()
+    public async Task<IActionResult> Feed(int page = 1)
     {
-        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)) 
-            return Unauthorized();
-        var user = await _context.Users.FindAsync(userId);
-        var posts = await _context.Posts
-            .Include(p => p.Author)
-            .Include(p => p.PostImages)
-            .ThenInclude(pi => pi.Image)
-            .Include(p => p.PostLikes)
-            .ThenInclude(pl => pl.Like)
-            .ThenInclude(l => l.User)
-            .Include(p => p.Comments)
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync();
+        var userId = User.GetUserId();
+        int pageSize = 1;
+        var posts = await _postService.GetFeedPosts(userId, page, pageSize);
 
-        var model = posts.Select(post => post.ToModel(userId)).ToList();
+        return View(posts);
+    }
+    [HttpGet]
+    [Route("/Feed/GetFeedPostPage")]
+    public async Task<IActionResult> GetFeedPostPage(int page = 1)
+    {
+        var userId = User.GetUserId();
+        int pageSize = 1;
+        var posts = await _postService.GetFeedPosts(userId, page, pageSize);
 
-        return View(model);
+        return PartialView("../Post/_PostPartial", posts);
     }
 }

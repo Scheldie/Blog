@@ -2,10 +2,32 @@
 
 namespace Blog.Infrastructure.Middleware;
 
-public class RequireUserMiddleware(RequestDelegate next)
+public class RequireUserMiddleware
 {
+    private readonly RequestDelegate _next;
+
+    public RequireUserMiddleware(RequestDelegate next)
+    {
+        _next = next;
+    }
+
     public async Task Invoke(HttpContext context)
     {
+        var path = context.Request.Path.Value?.ToLower();
+
+
+        if (path.StartsWith("/login") ||
+            path.StartsWith("/signup") ||
+            path.StartsWith("/css") ||
+            path.StartsWith("/js") ||
+            path.StartsWith("/images") ||
+            path.StartsWith("/favicon") ||
+            path.ToString() == "/")
+        {
+            await _next(context);
+            return;
+        }
+
         var claim = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (!int.TryParse(claim, out var userId) || userId <= 0)
@@ -14,6 +36,6 @@ public class RequireUserMiddleware(RequestDelegate next)
             return;
         }
 
-        await next(context);
+        await _next(context);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Blog.Models.Request;
 
-public class PostEditRequest
+public class PostEditModel
 {
     public int Id { get; set; }
     [StringLength(200, MinimumLength = 1, ErrorMessage = "Длина заголовка должна быть от 1 до 200 символов")]

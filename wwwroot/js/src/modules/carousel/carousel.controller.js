@@ -78,22 +78,23 @@ export function initPhotoView() {
 
         Modal.open('modal-photo-view');
     };
-
+    if (postBtn) {
+        postBtn.onclick = async () => {
+            if (!currentPostId) return;
+    
+            Modal.close('modal-photo-view');
+    
+            setTimeout(async () => {
+                const post = await loadSinglePost(currentPostId);
+                if (!post) return;
+    
+                post.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                post.classList.add('highlight-post');
+                setTimeout(() => post.classList.remove('highlight-post'), 1500);
+            }, 200);
+        };
+    }
     // обработчик кнопки "Перейти к посту"
-    postBtn.onclick = async () => {
-        if (!currentPostId) return;
-
-        Modal.close('modal-photo-view');
-
-        setTimeout(async () => {
-            const post = await loadSinglePost(currentPostId);
-            if (!post) return;
-
-            post.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            post.classList.add('highlight-post');
-            setTimeout(() => post.classList.remove('highlight-post'), 1500);
-        }, 200);
-    };
 }
 
 async function loadSinglePost(postId) {

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<PostModel>
+﻿@model IEnumerable<Blog.Models.PostModel>
 @foreach (var post in Model)
 {
     <div class="publication" data-post-id="@post.Id">
@@ -6,15 +6,15 @@
         <!-- HEADER -->
         <div class="publication-header">
             <div class="publication-user-info">
-                <a asp-controller="Profile" asp-action="Users" asp-route-name="@post.User.UserName">
+                <a asp-controller="Profile" asp-action="Users" asp-route-name="@post.UserName">
                     <img 
                         src="/img/placeholder-avatar.png"
-                        data-src="@(post.User.AvatarPath ?? Url.Content("~/img/profile.png"))"
+                        data-src="@(post.UserAvatar ?? Url.Content("~/img/profile.png"))"
                         class="publication-avatar lazy">
                 </a>
 
-                <a asp-controller="Profile" asp-action="Users" asp-route-name="@post.User.UserName"
-                   class="publication-user-name">@post.User.UserName</a>
+                <a asp-controller="Profile" asp-action="Users" asp-route-name="@post.UserName"
+                   class="publication-user-name">@post.UserName</a>
             </div>
 
             <p class="publication-date">@post.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
@@ -37,7 +37,7 @@
             }
 
             @{
-                var imageCount = post.PostImages?.Count() ?? 0;
+                var imageCount = post.ImagesCount;
                 var containerClass = imageCount switch
                 {
                     1 => "post-images-container single-image",
@@ -47,16 +47,16 @@
             }
 
             <div class="@containerClass">
-                @if (post.PostImages?.Any() == true)
+                @if (post.Images?.Any() == true)
                 {
-                    @foreach (var postImage in post.PostImages)
+                    @foreach (var postImage in post.Images)
                     {
-                        if (postImage.Image?.Path != null)
+                        
                         {
                             <div class="post-image-item">
                                 <img 
                                     src="/img/placeholder.jpg"
-                                    data-src="@Url.Content(postImage.Image.Path)"
+                                    data-src="@Url.Content(postImage)"
                                     class="post-image lazy"
                                     alt="Изображение поста">
                             </div>
@@ -76,15 +76,15 @@
         <div class="post-bottom">
             <div class="comments-toggle">
                 <img src="~/img/Chevron down.png" class="toggle-comments">
-                <span class="comment-count">@(post.Comments?.Count() ?? 0)</span>
+                <span class="comment-count">@(post.CommentsCount)</span>
             </div>
 
             <div class="like-section" data-post-id="@post.Id">
                 @Html.AntiForgeryToken()
                 <img
-                    src="~/img/@((post.PostLikes?.Any(l => l.Like.User.Id == post.WatcherId) == true) ? "Heart Active.png" : "Heart.png")"
-                    class="like-icon @((post.PostLikes?.Any(l => l.Like.UserId == post.WatcherId) == true) ? "active" : "")">
-                <span class="like-count">@(post.PostLikes?.Count() ?? 0)</span>
+                    src="~/img/@((post.IsLiked == true) ? "Heart Active.png" : "Heart.png")"
+                    class="like-icon @((post.IsLiked == true) ? "active" : "")">
+                <span class="like-count">@(post.LikesCount)</span>
             </div>
         </div>
 

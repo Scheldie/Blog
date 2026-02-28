@@ -2,7 +2,7 @@
 
 namespace Blog.Models.Request;
 
-public class CommentCreateRequest
+public class CommentCreateModel
 {
     [Required]
     [StringLength(600, MinimumLength = 1)]

@@ -1,3 +1,15 @@
+export async function httpGet(url) {
+    const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    });
+
+    if (!res.ok) throw new Error(await res.text());
+    return res.text(); // важно: фид возвращает HTML, не JSON
+}
+
 export async function httpPost(url, data) {
     const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
@@ -17,3 +29,4 @@ export async function httpPost(url, data) {
     if (!res.ok) throw new Error(await res.text());
     return res.json();
 }
+

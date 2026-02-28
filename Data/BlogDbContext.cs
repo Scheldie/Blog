@@ -13,7 +13,6 @@ namespace Blog.Data
     {
         public BlogDbContext(DbContextOptions<BlogDbContext> options)
                 : base(options) {
-            Database.EnsureCreated();
         }
         public BlogDbContext()        
         {

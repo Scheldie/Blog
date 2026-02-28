@@ -20,6 +20,7 @@
         <main role="main" class="pb-3">
             <div class="form-div">
                 <form class="initial-form" method="post" asp-antiforgery="true" asp-controller="Authorization" asp-action="Login" novalidate="novalidate">
+                    @Html.AntiForgeryToken()
                     <div class="form-group">
                         <span class="text-danger">
                             <div>
@@ -39,7 +40,7 @@
 
                     </div>
 
-                    
+
                     <a asp-area="" asp-controller="Profile" asp-action="Index"><button class="button registration-button form-element"><span class="registration-button-title">Log in</span></button></a><br>
                     <a asp-area="" asp-controller="Authorization" asp-action="Forgotten" class="form-element-forgot"><u>forgot your password?</u></a>
                 </form>

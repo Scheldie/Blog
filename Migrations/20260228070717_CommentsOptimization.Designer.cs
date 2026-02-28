@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Blog.Migrations
 {
     [DbContext(typeof(BlogDbContext))]
-    [Migration("20260217105730_FixPostImageRelation")]
-    partial class FixPostImageRelation
+    [Migration("20260228070717_CommentsOptimization")]
+    partial class CommentsOptimization
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -39,16 +39,23 @@ namespace Blog.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("LikesCount")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("ParentId")
                         .HasColumnType("integer");
 
                     b.Property<int>("PostId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("RepliesCount")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("ReplyTo")
                         .HasColumnType("integer");
 
                     b.Property<string>("Text")
+                        .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
@@ -147,8 +154,7 @@ namespace Blog.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("Images");
                 });
@@ -225,13 +231,16 @@ namespace Blog.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CommentsCount")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(1500)
-                        .HasColumnType("character varying(1500)");
+                        .HasMaxLength(6000)
+                        .HasColumnType("character varying(6000)");
 
                     b.Property<int>("ImagesCount")
                         .HasColumnType("integer");
@@ -344,6 +353,9 @@ namespace Blog.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AvatarId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("AvatarPath")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -383,6 +395,9 @@ namespace Blog.Migrations
                         .HasColumnType("character varying(30)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AvatarId")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });
@@ -459,8 +474,8 @@ namespace Blog.Migrations
             modelBuilder.Entity("Blog.Entities.Image", b =>
                 {
                     b.HasOne("Blog.Entities.User", "User")
-                        .WithOne("Avatar")
-                        .HasForeignKey("Blog.Entities.Image", "UserId")
+                        .WithMany("Images")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -547,6 +562,16 @@ namespace Blog.Migrations
                     b.Navigation("Post");
                 });
 
+            modelBuilder.Entity("Blog.Entities.User", b =>
+                {
+                    b.HasOne("Blog.Entities.Image", "Avatar")
+                        .WithOne()
+                        .HasForeignKey("Blog.Entities.User", "AvatarId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Avatar");
+                });
+
             modelBuilder.Entity("Blog.Entities.Comment", b =>
                 {
                     b.Navigation("CommentLikes");
@@ -572,9 +597,9 @@ namespace Blog.Migrations
 
             modelBuilder.Entity("Blog.Entities.User", b =>
                 {
-                    b.Navigation("Avatar");
-
                     b.Navigation("Comments");
+
+                    b.Navigation("Images");
 
                     b.Navigation("Posts");
                 });

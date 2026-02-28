@@ -32,7 +32,7 @@ public class PostController : Controller
     public async Task<IActionResult> GetPost(int id)
     {
         var userId = User.GetUserId();
-        var post = await _postService.GetPostById(userId, id);
+        var post = await _postService.GetPostByIdAsync(userId, id);
         if (post == new PostModel(){Title = "",Description = ""}) return NotFound();
 
         return PartialView("_PostPartial", new List<PostModel>{post});
@@ -40,12 +40,12 @@ public class PostController : Controller
     
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreatePost([FromForm] PostCreateRequest model)
+    public async Task<IActionResult> CreatePost([FromForm] PostCreateModel model)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var userId = User.GetUserId();
-        var post = await _postService.CreatePost(userId, model);
+        var post = await _postService.CreatePostAsync(userId, model);
         if (post == null)
         {
             return StatusCode(500, new
@@ -64,13 +64,13 @@ public class PostController : Controller
     }
     
     [HttpPost]
-    public async Task<IActionResult> EditPost([FromForm] PostEditRequest model)
+    public async Task<IActionResult> EditPost([FromForm] PostEditModel model)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var userId = User.GetUserId();
 
-        var success = await _postService.EditPost(userId, model);
+        var success = await _postService.EditPostAsync(userId, model);
         if (success) return Ok(new { success = true });
         return StatusCode(500, new
         {
@@ -84,7 +84,7 @@ public class PostController : Controller
     {
         var userId = User.GetUserId();
 
-        var success = await _postService.DeletePost(userId, postId);
+        var success = await _postService.DeletePostAsync(userId, postId);
         if(success) return Ok(new { success = true });
         return StatusCode(500, new
             {

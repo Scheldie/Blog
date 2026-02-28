@@ -5,28 +5,6 @@ namespace Blog.Entities
 {
     public class Post : IEntity
     {
-        public PostModel ToModel(int userId)
-        {
-            return new PostModel()
-            {
-                Id = this.Id,
-                Title = this.Title,
-                Description = this.Description,
-                CreatedAt = this.CreatedAt,
-                UpdatedAt = this.UpdatedAt,
-                LikesCount = this.LikesCount,
-                ImagesCount = this.ImagesCount,
-                ViewCount = this.ViewCount,
-                UserId = this.UserId,
-                User = this.Author,
-                PostImages = this.PostImages,
-                PostLikes = this.PostLikes,
-                Comments = this.Comments,
-                WatcherId = userId,
-                IsLiked = this.PostLikes.Any(pl => pl.Like.UserId == userId),
-                IsCurrentUser = this.UserId == userId
-            };
-        }
         public int Id { get; set; }
         [MaxLength(200)]
         public required string Title { get; set; }
@@ -45,6 +23,8 @@ namespace Blog.Entities
         public virtual IEnumerable<Post_Like>? PostLikes { get; set; }
         public int ViewCount { get; set; }
         public int LikesCount { get; set; }
+        
+        public int CommentsCount { get; set; }
     }
    
 

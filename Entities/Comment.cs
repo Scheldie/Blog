@@ -6,27 +6,6 @@ namespace Blog.Entities
 {
     public class Comment : IEntity
     {
-        public CommentModel toModel
-        (bool? isLiked = false, bool? isCurrentUser = false, bool? isReply = false)
-        {
-            return new CommentModel()
-            {
-                Id = Id,
-                User = new CommentUserModel()
-                {
-                    UserName = User.UserName,
-                    AvatarPath = User.AvatarPath
-                },
-                Text = Text,
-                CreatedAt = CreatedAt,
-                LikesCount = CommentLikes.Count,
-                ParentId = ParentId,
-                IsLiked = isLiked ?? false,
-                IsCurrentUser = isCurrentUser ?? false,
-                IsReply = isReply ?? false,
-                RepliesCount = Replies?.Count ?? 0 
-            };
-        }
         public int Id { get; set; }
 
         public  virtual required User User { get; init; }
@@ -50,6 +29,10 @@ namespace Blog.Entities
         public DateTime CreatedAt { get; init; }
 
         public DateTime UpdatedAt { get; set; }
+        
+        public int LikesCount { get; set; }
+        
+        public int RepliesCount { get; set; }
 
         public virtual ICollection<Comment_Like> CommentLikes { get; set; } = new List<Comment_Like>();
 

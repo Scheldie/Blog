@@ -4,12 +4,11 @@
     {
         public Comment_Like() {}
 
-        public Comment_Like(int entityId, int postId, int likeId, Like like)
+        public Comment_Like(int entityId, int postId, int likeId)
         {
             CommentId = entityId;
             PostId = postId;
             LikeId = likeId;
-            Like = like;
         }
         public int Id { get; set; }
 
