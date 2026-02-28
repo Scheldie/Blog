@@ -98,6 +98,8 @@ export function initPostsController() {
                 initCommentsController(container);
                 initLikesForNewPosts(container);
                 initGalleryForNewPosts(container);
+                
+                
             }
 
             loading = false;
@@ -122,7 +124,7 @@ function openEditPopup(postElement) {
     const imageInput = document.getElementById('edit-image-input');
 
     titleInput.value = data.title;
-    descInput.value = data.description;
+    descInput.value = data.descriptionRaw;
     idInput.value = data.id;
 
     let oldImages = [...data.images];

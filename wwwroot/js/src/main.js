@@ -7,6 +7,7 @@ import { initSearchController } from './modules/search/search.controller.js';
 import {initCarousel, initPhotoView} from './modules/carousel/carousel.controller.js';
 import { Modal } from './ui/modal.js';
 import { initFeedController } from "./modules/feed/feed.controller.js";
+import { initHighlightController } from './modules/highlight/highlight.controller.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     initPostsController();
@@ -18,5 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initCarousel();
     initPhotoView();
     initFeedController();
+    initHighlightController();
     Modal.init();
 });

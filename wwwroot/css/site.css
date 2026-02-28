@@ -29,3 +29,37 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+.error-wrapper {
+    max-width: 600px;
+    margin: 80px auto;
+    padding: 40px;
+    text-align: center;
+    background: #1e1e1e;
+    border-radius: 12px;
+    border: 1px solid #2c2c2c;
+    box-shadow: 0 0 20px rgba(0,0,0,0.25);
+}
+
+.error-wrapper h1 {
+    font-size: 72px;
+    margin-bottom: 20px;
+    color: #477fea; /* тот самый Rider-синий */
+    font-weight: 700;
+}
+
+.error-wrapper p {
+    font-size: 20px;
+    color: #cfcfcf;
+    margin-bottom: 10px;
+}
+
+.error-wrapper a {
+    color: #44a5cb;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.error-wrapper a:hover {
+    text-decoration: underline;
+}

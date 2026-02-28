@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<Blog.Models.PostModel>
 @foreach (var post in Model)
 {
-    <div class="publication" data-post-id="@post.Id">
+    <div class="publication" data-post-id="@post.Id" data-description-raw="@post.Description">
 
         <!-- HEADER -->
         <div class="publication-header">
@@ -66,7 +66,9 @@
 
             @if (!string.IsNullOrEmpty(post.Description))
             {
-                <h3 class="publication-description">@post.Description</h3>
+                <div class="publication-description">
+                     @Html.Raw(post.DescriptionHtml)
+                </div>
             }
         </div>
 

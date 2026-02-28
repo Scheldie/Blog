@@ -3,15 +3,19 @@ export const PostsView = {
         return {
             id: postElement.dataset.postId,
             title: postElement.querySelector('.publication-title')?.textContent || '',
-            description: postElement.querySelector('.publication-description')?.textContent || '',
+            descriptionRaw: postElement.dataset.descriptionRaw || '',
             images: Array.from(postElement.querySelectorAll('.post-image')).map(img => ({
                 src: img.src
             }))
         };
     },
 
+
     updatePostUI(postElement, newData) {
         postElement.querySelector('.publication-title').textContent = newData.title;
-        postElement.querySelector('.publication-description').textContent = newData.description;
+        postElement.dataset.descriptionRaw = newData.description; 
+
+        postElement.querySelector('.publication-description').innerHTML = newData.descriptionHtml;
+
     }
 };

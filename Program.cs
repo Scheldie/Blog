@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Security.Claims;
 using Blog.Infrastructure.Images;
+using Blog.Infrastructure.Markdown;
 using Blog.Infrastructure.Middleware;
 using Minio;
 
@@ -43,6 +44,7 @@ builder.Services.AddSingleton<IMinioClient>(sp =>
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddSingleton<IMarkdownRenderer, MarkdownRenderer>();
 builder.Services.AddScoped<IFileService, MinioFileService>();
 builder.Services.AddScoped<PostService>();
 builder.Services.AddScoped<ProfileService>();
@@ -123,7 +125,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<RequireUserMiddleware>();
 
-
+app.UseExceptionHandler("/Error/500"); 
+app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
 app.MapControllerRoute(
     name: "default",

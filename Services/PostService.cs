@@ -2,6 +2,7 @@
 using Blog.Data;
 using Blog.Entities;
 using Blog.Infrastructure.Images;
+using Blog.Infrastructure.Markdown;
 using Blog.Migrations;
 using Blog.Models;
 using Blog.Models.Request;
@@ -12,7 +13,8 @@ public class PostService(
     BlogDbContext context,
     ILogger<PostService> logger,
     IFileService fileService,
-    IWebHostEnvironment env)
+    IWebHostEnvironment env,
+    IMarkdownRenderer _markdown)
 {
     
     public async Task<List<PostModel>> GetFeedPosts(int userId, int page, int pageSize)
@@ -26,6 +28,7 @@ public class PostService(
                 p => 
                     new PostModel { 
                         Id = p.Id, Title = p.Title, Description = p.Description, 
+                        DescriptionHtml = _markdown.ToHtml(p.Description),
                         CreatedAt = p.CreatedAt, UpdatedAt = p.UpdatedAt, 
                         UserId = p.UserId, UserName = p.Author.UserName, 
                         UserAvatar = p.Author.AvatarSmall40Url, 
@@ -216,6 +219,7 @@ public class PostService(
                 p => 
                     new PostModel { 
                         Id = p.Id, Title = p.Title, Description = p.Description, 
+                        DescriptionHtml = _markdown.ToHtml(p.Description),
                         CreatedAt = p.CreatedAt, UpdatedAt = p.UpdatedAt, 
                         UserId = p.UserId, UserName = p.Author.UserName, 
                         UserAvatar = p.Author.AvatarSmall40Url, 
