@@ -22,18 +22,6 @@ namespace Blog.Data
         {
             base.OnModelCreating(modelBuilder);
             
-            modelBuilder.Entity<User>()
-                .HasOne(u => u.Avatar)
-                .WithOne()
-                .HasForeignKey<User>(u => u.AvatarId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            modelBuilder.Entity<Blog.Entities.Image>()
-                .HasOne(i => i.User)
-                .WithMany(u => u.Images)
-                .HasForeignKey(i => i.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-            
             modelBuilder.Entity<Post_Image>()
                 .HasOne(pi => pi.Image)
                 .WithMany(i => i.PostImages)
@@ -68,14 +56,6 @@ namespace Blog.Data
         public DbSet<Post_Like> Post_Likes { get; set; } 
 
         public DbSet<Comment_Like> Comment_Likes { get; set; } 
-
-
-
-
-
-
-
-
-
+        
     }
 }

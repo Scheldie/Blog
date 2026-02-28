@@ -23,7 +23,7 @@ public class CommentService(BlogDbContext context, ILogger<CommentService> logge
             {
                 Comment = c,
                 IsLiked = userId > 0 && c.CommentLikes.Any(l => l.Like.UserId == userId),
-                User = new CommentUserModel{AvatarPath = c.User.AvatarPath, UserName = c.User.UserName},
+                User = new CommentUserModel{AvatarPath = c.User.AvatarSmall32Url, UserName = c.User.UserName},
             })
             .ToListAsync();
         
@@ -42,7 +42,7 @@ public class CommentService(BlogDbContext context, ILogger<CommentService> logge
     public async Task<CommentModel?> AddComment(CommentCreateModel model, int userId)
     {
         var user = await context.Users.FindAsync(userId);
-        var commentUser = new CommentUserModel(){AvatarPath = user?.AvatarPath,  UserName = user?.UserName};
+        var commentUser = new CommentUserModel(){AvatarPath = user?.AvatarSmall32Url,  UserName = user?.UserName};
         if (user == null) return null;
 
         Comment? parent = null;

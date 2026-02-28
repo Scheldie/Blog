@@ -20,13 +20,18 @@ namespace Blog.Entities
         public DateTime LastUpdatedAt { get; init; }
         public DateTime LastLoginAt { get; set; }
         public DateTime LastActiveAt { get; set; }
-        public int? AvatarId { get; set; }
-        public virtual Image? Avatar { get; init; } 
-        [StringLength(200)]
-        public string? AvatarPath { get; set; }
-        public virtual ICollection<Image>? Images { get; set; }
+        [MaxLength(160)] 
+        public string? AvatarSmall32Url { get; set; } 
+        [MaxLength(160)] 
+        public string? AvatarSmall40Url { get; set; } 
+        [MaxLength(160)] 
+        public string? AvatarProfileUrl { get; set; } 
+        [MaxLength(160)] 
+        public string? AvatarFullUrl { get; set; } 
+        [MaxLength(160)] 
+        public string? AvatarOriginalUrl { get; set; }
+
         public virtual ICollection<Post>? Posts { get; init; }
-        public virtual ICollection<Comment>? Comments { get; init; }
 
     }
 }

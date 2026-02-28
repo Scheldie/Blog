@@ -9,12 +9,8 @@ services:
       - "7141:7141"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:7141
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=123456
+      - ASPNETCORE_URLS=http://+:7141
       - ConnectionStrings__DefaultConnection=Server=blog-db;Port=5432;Database=blogdb;User Id=postgres;Password=1;
-    volumes:
-      - ./aspnetapp.pfx:/https/aspnetapp.pfx:ro
     depends_on:
       - blog-db
     restart: on-failure:3
@@ -24,6 +20,9 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
+    networks:
+      - blog-net
+
 
   blog-db:
     image: postgres:17
@@ -43,7 +42,10 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
-        
+    networks:
+      - blog-net
+  
+  
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin4
@@ -52,6 +54,44 @@ services:
       PGADMIN_DEFAULT_PASSWORD: root
     ports:
       - "7313:80"
+    networks:
+      - blog-net
 
+
+  nginx:
+    image: nginx:latest
+    container_name: blog-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./wwwroot:/var/www/blog/wwwroot:ro
+    depends_on:
+      - minio
+      - blog-service
+    networks: 
+      - blog-net
+
+
+  minio:
+    image: minio/minio
+    container_name: blog-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    ports: 
+      - "9000:9000" 
+      - "9001:9001"
+    networks: 
+      - blog-net
+
+networks: 
+  blog-net: 
+    driver: bridge
+    
 volumes:
   blog_db_data:
+  minio_data:

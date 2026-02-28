@@ -18,11 +18,17 @@ public static class PostMapper
 
             UserId = post.UserId,
             UserName = post.Author.UserName,
-            UserAvatar = post.Author.AvatarPath,
+            UserAvatar = post.Author.AvatarSmall40Url,
 
             Images = post.PostImages
                 .OrderBy(i => i.Order)
-                .Select(i => i.Image.Path)
+                .Select(i => new ImageModel()
+                {
+                    FullUrl = i?.Image?.FullUrl ?? "",
+                    ThumbnailUrl = i?.Image?.ThumbnailUrl ?? "",
+                    PreviewUrl = i.Image.PreviewUrl,
+                    OriginalUrl = i.Image.OriginalUrl,
+                })
                 .ToList(),
             ImagesCount = post.ImagesCount,
 

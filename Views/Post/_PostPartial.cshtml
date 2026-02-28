@@ -7,9 +7,9 @@
         <div class="publication-header">
             <div class="publication-user-info">
                 <a asp-controller="Profile" asp-action="Users" asp-route-name="@post.UserName">
-                    <img 
+                    <img
                         src="/img/placeholder-avatar.png"
-                        data-src="@(post.UserAvatar ?? Url.Content("~/img/profile.png"))"
+                        data-src="@(post.UserAvatar ?? "/img/profile.png")"
                         class="publication-avatar lazy">
                 </a>
 
@@ -51,16 +51,15 @@
                 {
                     @foreach (var postImage in post.Images)
                     {
-                        
-                        {
-                            <div class="post-image-item">
-                                <img 
-                                    src="/img/placeholder.jpg"
-                                    data-src="@Url.Content(postImage)"
-                                    class="post-image lazy"
-                                    alt="Изображение поста">
-                            </div>
-                        }
+                        <div class="post-image-item">
+                            <img
+                                src="/img/placeholder.jpg"
+                                data-src="@postImage.PreviewUrl"
+                                data-full="@postImage.FullUrl"
+                                data-thumb="@postImage.ThumbnailUrl"
+                                class="post-image lazy"
+                                alt="Изображение поста">
+                        </div>
                     }
                 }
             </div>

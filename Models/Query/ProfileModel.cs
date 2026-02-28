@@ -12,7 +12,7 @@ namespace Blog.Models
             Email = isCurrentUser ? user.Email : null;
             Bio = user.Bio;
             UserName = user.UserName;
-            AvatarPath = user.AvatarPath;
+            AvatarPath = user.AvatarProfileUrl;
             IsCurrentUser = isCurrentUser;
             WatcherId = user.Id;
             IsActive = user.IsActive;

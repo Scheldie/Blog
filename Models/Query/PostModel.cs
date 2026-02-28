@@ -12,7 +12,7 @@ public class PostModel
     public string UserName { get; set; } = "";
     public string? UserAvatar { get; set; }
 
-    public List<string> Images { get; set; } = new();
+    public List<ImageModel> Images { get; set; } = new();
     public int ImagesCount { get; set; }
 
     public int LikesCount { get; set; }

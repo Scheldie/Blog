@@ -1,5 +1,6 @@
 ﻿using Blog.Data;
 using Blog.Entities;
+using Blog.Infrastructure.Images;
 using Blog.Models;
 using Blog.Models.Request;
 using Microsoft.EntityFrameworkCore;
@@ -25,23 +26,39 @@ public class ProfileService
         if (user == null) return false;
         user.UserName = model.UserName;
         user.Bio = model.Bio;
+        var currentAvatar = user.AvatarProfileUrl;
         if (model.RemoveAvatar)
         {
-            if (!string.IsNullOrEmpty(user.AvatarPath))
+            if (!string.IsNullOrEmpty(currentAvatar))
             {
-                var oldFilePath = Path.Combine(_env.WebRootPath, user.AvatarPath.TrimStart('/'));
-                await _fileService.DeleteFileAsync(oldFilePath);
+                await _fileService.DeleteAvatarAsync(userId);
+
+                user.AvatarSmall32Url = null;
+                user.AvatarSmall40Url = null;
+                user.AvatarProfileUrl = null;
+                user.AvatarFullUrl = null;
+                user.AvatarOriginalUrl = null;
+
             }
-            user.AvatarPath = null;
         }
         if (model.Avatar != null && model.Avatar.Length > 0)
         {
-            if (!string.IsNullOrEmpty(user.AvatarPath))
+            if (!string.IsNullOrEmpty(user.AvatarProfileUrl))
             {
-                var oldFilePath = Path.Combine(_env.WebRootPath, user.AvatarPath.TrimStart('/'));
-                await _fileService.DeleteFileAsync(oldFilePath);
+                await _fileService.DeleteAvatarAsync(userId);
+
+                user.AvatarSmall32Url = null;
+                user.AvatarSmall40Url = null;
+                user.AvatarProfileUrl = null;
+                user.AvatarFullUrl = null;
+                user.AvatarOriginalUrl = null;
             }
-            user.AvatarPath = await _fileService.SaveFileAsync(model.Avatar);
+            var variants = await _fileService.UploadAvatarAsync(model.Avatar, userId);
+            user.AvatarSmall32Url = variants[ImageVariant.AvatarSmall32]; 
+            user.AvatarSmall40Url = variants[ImageVariant.AvatarSmall40]; 
+            user.AvatarProfileUrl = variants[ImageVariant.AvatarProfile]; 
+            user.AvatarFullUrl = variants[ImageVariant.AvatarFull]; 
+            user.AvatarOriginalUrl = variants[ImageVariant.Original];
         }
         await _context.SaveChangesAsync();
         return true;

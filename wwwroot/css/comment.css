@@ -260,6 +260,39 @@
     border-left: 2px solid #e4e6eb;
     margin-top: 16px;
 }
+
+.edit-textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    min-height: 60px;
+    margin-bottom: 8px;
+}
+.save-edit-btn, .cancel-edit-btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.save-edit-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+}
+
+.cancel-edit-btn {
+    background-color: #f1f1f1;
+    border: 1px solid #ddd;
+}
+.edit-form {
+    margin-top: 8px;
+    padding-left: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
 /* no comments */
 .no-comments {
     color: #65676b;

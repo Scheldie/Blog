@@ -47,7 +47,6 @@ public class AuthorizationService
             Email = model.Email,
             UserName = model.UserName,
             PasswordHash = _hasher.Generate(model.Password),
-            AvatarPath = "/default-avatar.png",
             CreatedAt = DateTime.UtcNow,
             LastUpdatedAt = DateTime.UtcNow,
             LastLoginAt = DateTime.UtcNow,

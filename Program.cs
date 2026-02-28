@@ -11,11 +11,14 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Security.Claims;
+using Blog.Infrastructure.Images;
 using Blog.Infrastructure.Middleware;
+using Minio;
 
 var builder = WebApplication.CreateBuilder();
 
 var optionsBuilder = new DbContextOptionsBuilder<BlogDbContext>();
+var minioConfig = builder.Configuration.GetSection("Minio");
 
 builder.Services.AddHttpContextAccessor();
 
@@ -29,10 +32,18 @@ builder.Services.AddDbContext<BlogDbContext>
 
 var jwtOptions = builder.Configuration.GetSection("JwtConfig").Get<JwtOptions>();
 
+builder.Services.AddSingleton<IImageVariantGenerator, ImageSharpImageVariantGenerator>();
+builder.Services.AddSingleton<IMinioClient>(sp =>
+{
+    return new MinioClient()
+        .WithEndpoint(minioConfig["Endpoint"])
+        .WithCredentials(minioConfig["AccessKey"], minioConfig["SecretKey"])
+        .Build();
+});
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IFileService, MinioFileService>();
 builder.Services.AddScoped<PostService>();
 builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<CommentService>();

@@ -17,7 +17,7 @@ public class SearchService(BlogDbContext context)
             {
                 Id = u.Id,
                 UserName = u.UserName,
-                AvatarPath = u.AvatarPath ?? "",
+                AvatarPath = u.AvatarSmall32Url ?? "",
             })
             .OrderBy(u => u.UserName);
 
@@ -37,7 +37,7 @@ public class SearchService(BlogDbContext context)
             {
                 Id = u.Id,
                 UserName = u.UserName,
-                AvatarPath = u.AvatarPath ?? "",
+                AvatarPath = u.AvatarSmall40Url ?? "",
             })
             .OrderBy(u => u.UserName)
             .ToListAsync();

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Blog.Data;
 using Blog.Entities;
+using Blog.Infrastructure.Images;
 using Blog.Migrations;
 using Blog.Models;
 using Blog.Models.Request;
@@ -27,9 +28,15 @@ public class PostService(
                         Id = p.Id, Title = p.Title, Description = p.Description, 
                         CreatedAt = p.CreatedAt, UpdatedAt = p.UpdatedAt, 
                         UserId = p.UserId, UserName = p.Author.UserName, 
-                        UserAvatar = p.Author.AvatarPath, 
+                        UserAvatar = p.Author.AvatarSmall40Url, 
                         Images = p.PostImages.OrderBy(i => i.Order)
-                            .Select(i => i.Image.Path).ToList(), 
+                            .Select(i => new ImageModel()
+                            {
+                                FullUrl = i.Image.FullUrl,
+                                ThumbnailUrl = i.Image.ThumbnailUrl,
+                                PreviewUrl = i.Image.PreviewUrl,
+                                OriginalUrl = i.Image.OriginalUrl,
+                            }).ToList(), 
                         ImagesCount = p.ImagesCount, 
                         LikesCount = p.LikesCount, 
                         CommentsCount = p.CommentsCount, 
@@ -62,13 +69,24 @@ public class PostService(
         var savedImages = new List<Image>();
         if (model.ImageFiles != null)
         {
+            int index = 0;
             foreach (var file in model.ImageFiles)
             {
                 if (file.Length == 0) continue;
-                var imagePath = await fileService.SaveFileAsync(file);
-                if (string.IsNullOrEmpty(imagePath)) continue;
-                var image = new Image(imagePath, DateTime.UtcNow, userId);
+                
+                var variants = await fileService.UploadPostImageAsync(file, post.Id, index);
+                if (variants.Count == 0) continue;
+
+                var image = new Image(DateTime.UtcNow, userId)
+                {
+                    ThumbnailUrl = variants[ImageVariant.Thumbnail],
+                    PreviewUrl   = variants[ImageVariant.Preview],
+                    FullUrl      = variants[ImageVariant.Full],
+                    OriginalUrl  = variants[ImageVariant.Original]
+                };
+
                 savedImages.Add(image);
+                index++;
             }
 
             await context.Images.AddRangeAsync(savedImages);
@@ -102,14 +120,14 @@ public class PostService(
 
         var keepPaths = model.ExistingImagePaths ?? new List<string>();
         var imagesToDelete = post.PostImages
-            .Where(pi => !keepPaths.Contains(pi.Image.Path))
+            .Where(pi => !keepPaths.Contains(pi.Image.PreviewUrl))
             .ToList();
 
         foreach (var pi in imagesToDelete)
         {
-            var fullPath = Path.Combine(env.WebRootPath, pi.Image.Path.TrimStart('/'));
-            await fileService.DeleteFileAsync(fullPath);
-
+            var key = pi.Image.PreviewUrl.Replace("/minio/blog-images/", "");
+            await fileService.DeleteSinglePostImageAsync(key);
+            
             context.Post_Images.Remove(pi);
             context.Images.Remove(pi.Image);
             post.PostImages.Remove(pi);
@@ -125,10 +143,17 @@ public class PostService(
             {
                 if (file.Length == 0) continue;
 
-                var imagePath = await fileService.SaveFileAsync(file);
-                if (string.IsNullOrEmpty(imagePath)) continue;
+                var variants = await fileService.UploadPostImageAsync(file, post.Id, order);
+                if (variants.Count == 0) continue;
 
-                var image = new Image(imagePath, DateTime.UtcNow, userId);
+                var image = new Image(DateTime.UtcNow, userId)
+                {
+                    ThumbnailUrl = variants[ImageVariant.Thumbnail],
+                    PreviewUrl   = variants[ImageVariant.Preview],
+                    FullUrl      = variants[ImageVariant.Full],
+                    OriginalUrl  = variants[ImageVariant.Original]
+                };
+
                 context.Images.Add(image);
 
                 var postImage = new Post_Image
@@ -158,13 +183,7 @@ public class PostService(
             .FirstOrDefaultAsync(p => p.Id == postId && p.UserId == userId);
 
         if (post == null) return false;
-
-        foreach (var postImage in post.PostImages)
-        {
-            var filePath = Path.Combine(env.WebRootPath, postImage.Image.Path.TrimStart('/'));
-            await fileService.DeleteFileAsync(filePath);
-        }
-
+        await fileService.DeletePostImagesAsync(postId);
         await context.Posts.Where(p => p.Id == postId).ExecuteDeleteAsync();
         await context.SaveChangesAsync();
         return true;
@@ -199,9 +218,15 @@ public class PostService(
                         Id = p.Id, Title = p.Title, Description = p.Description, 
                         CreatedAt = p.CreatedAt, UpdatedAt = p.UpdatedAt, 
                         UserId = p.UserId, UserName = p.Author.UserName, 
-                        UserAvatar = p.Author.AvatarPath, 
+                        UserAvatar = p.Author.AvatarSmall40Url, 
                         Images = p.PostImages.OrderBy(i => i.Order)
-                            .Select(i => i.Image.Path).ToList(), 
+                            .Select(i => new ImageModel()
+                            {
+                                FullUrl = i.Image.FullUrl ,
+                                ThumbnailUrl = i.Image.ThumbnailUrl,
+                                PreviewUrl = i.Image.PreviewUrl,
+                                OriginalUrl = i.Image.OriginalUrl,
+                            }).ToList(), 
                         ImagesCount = p.ImagesCount, 
                         LikesCount = p.LikesCount, 
                         CommentsCount = p.CommentsCount, 

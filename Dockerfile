@@ -14,14 +14,14 @@ WORKDIR /app
 
 # Настройки окружения
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV ASPNETCORE_URLS=https://+:7141
+ENV ASPNETCORE_URLS=http://+:7141
 ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
 ENV ASPNETCORE_Kestrel__Certificates__Default__Password=123456
 
 # Копируем сборку
 COPY --from=build /app/publish .
 
-# Копируем dev-сертификат (если используешь свой, замени путь)
+# Копируем dev-сертификат
 COPY aspnetapp.pfx /https/aspnetapp.pfx
 
 # Открываем порт
