@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+
+    
+    <link rel="stylesheet" href="~/css/profile1.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/post.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/comment.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/like.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/modal.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/gallery.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/search.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/markdown.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+</head>
+@await Html.PartialAsync("../Gallery/_ModalGallery")
+<body>
+    <header>
+        <nav class="index-header">
+            <ul class="header">
+                <li>
+                    <a asp-controller="Feed" asp-action="Feed">
+                        <img src="~/img/blog.png" class="logo">
+                    </a>
+                </li>
+
+                <li class="search-container">
+                    <input type="text" id="userSearch" placeholder="Поиск пользователей..." autocomplete="off">
+                    <div id="searchResults" class="search-results-dropdown">
+                        <div id="searchResultsList"></div>
+                        <div class="show-all-results" id="showAllResults">Показать все результаты</div>
+                    </div>
+                </li>
+
+                <li class="profile-icon-li">
+                    <a asp-controller="Profile" asp-action="Users" asp-route-id="0">
+                        <img src="~/img/profile.png" class="profile-icon">
+                    </a>
+                </li>
+
+                <li class="log-out-li">
+                    <a asp-controller="Profile" asp-action="Logout">
+                        <img src="~/img/Log out.png" class="log-out-icon">
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+<div class="container">
+    @RenderBody()
+    <div id="global-reply-form" class="reply-form" style="display:none;">
+         <textarea class="reply-textarea" placeholder="Ваш ответ..."></textarea>
+         <div class="reply-form-actions">
+              <button class="submit-reply">Отправить</button>
+             <button class="cancel-reply">Отмена</button>
+         </div>
+    </div>
+</div>
+
+
+<script type="module" src="~/js/src/main.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+@RenderSection("Scripts", required: false)
+
+</body>
+</html>

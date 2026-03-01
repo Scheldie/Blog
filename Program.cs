@@ -26,7 +26,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<BlogDbContext>
                             (optionsAction: options =>
-                                options.UseLazyLoadingProxies()
+                                options
                                 .UseNpgsql((builder.Configuration
                                 .GetConnectionString("DefaultConnection"))));
 
@@ -48,6 +48,7 @@ builder.Services.AddSingleton<IMarkdownRenderer, MarkdownRenderer>();
 builder.Services.AddScoped<IFileService, MinioFileService>();
 builder.Services.AddScoped<PostService>();
 builder.Services.AddScoped<ProfileService>();
+builder.Services.AddScoped<FollowService>();
 builder.Services.AddScoped<CommentService>();
 builder.Services.AddScoped<LikeService>();
 builder.Services.AddScoped<SearchService>();
@@ -100,12 +101,11 @@ var services = builder.Services;
 
 
 
-
-if (!app.Environment.IsDevelopment())
+/*if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
-}
+}*/
 
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();
@@ -125,8 +125,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<RequireUserMiddleware>();
 
-app.UseExceptionHandler("/Error/500"); 
-app.UseStatusCodePagesWithReExecute("/Error/{0}");
+/*app.UseExceptionHandler("/Error/500"); 
+app.UseStatusCodePagesWithReExecute("/Error/{0}");*/
 
 app.MapControllerRoute(
     name: "default",
@@ -157,7 +157,7 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.Use(async (context, next) => {
+/*app.Use(async (context, next) => {
     try
     {
         await next();
@@ -170,7 +170,7 @@ app.Use(async (context, next) => {
         context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
         await context.Response.WriteAsync("Service temporarily unavailable");
     }
-});
+});*/
 
 app.Run();
 

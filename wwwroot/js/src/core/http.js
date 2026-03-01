@@ -29,4 +29,14 @@ export async function httpPost(url, data) {
     if (!res.ok) throw new Error(await res.text());
     return res.json();
 }
+export async function httpPostHtml(url, data) {
+    const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+
+    return await res.text();
+}
+
 

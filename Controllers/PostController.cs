@@ -22,7 +22,7 @@ public class PostController : Controller
     [HttpGet]
     public async Task<IActionResult> LoadPosts(string userName,int page = 1)
     {
-        int pageSize = 1;
+        int pageSize = 2;
         var userId = User.GetUserId();
         var posts = await _postService.GetPostsPageAsync(userId,userName, page, pageSize);
 
@@ -37,6 +37,18 @@ public class PostController : Controller
 
         return PartialView("_PostPartial", new List<PostModel>{post});
     }
+    [HttpGet("/Post/View/{id}")]
+    public async Task<IActionResult> Post(int id)
+    {
+        var userId = User.GetUserId();
+        var post = await _postService.GetPostByIdAsync(userId, id);
+
+        if (post == null)
+            return NotFound();
+
+        return View("PostPage", post);
+    }
+
     
     [HttpPost]
     [ValidateAntiForgeryToken]

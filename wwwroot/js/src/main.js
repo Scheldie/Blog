@@ -8,6 +8,9 @@ import {initCarousel, initPhotoView} from './modules/carousel/carousel.controlle
 import { Modal } from './ui/modal.js';
 import { initFeedController } from "./modules/feed/feed.controller.js";
 import { initHighlightController } from './modules/highlight/highlight.controller.js';
+import {initFollowController, initFollowTabs} from "./modules/follow/follow.controller.js";
+import {initLazyFollowers, initLazyFollowing} from "./modules/follow/follow.lazy.js";
+import {initFollowModal} from "./modules/follow/follow.modal.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     initPostsController();
@@ -20,5 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initPhotoView();
     initFeedController();
     initHighlightController();
+    initFollowController(); 
+    initLazyFollowers(document); 
+    initLazyFollowing(document);
+    initFollowTabs();
+    initFollowModal();
     Modal.init();
 });

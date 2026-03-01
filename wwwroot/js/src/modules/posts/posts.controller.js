@@ -28,6 +28,7 @@ export function initPostsController() {
     initCommentsController(container);
     initLikesForNewPosts(container);
     initGalleryForNewPosts(container);
+    initDescriptionExpand(container);
 
 
     if (editCloseBtn) editCloseBtn.onclick = () => Modal.close('edit-popup-container');
@@ -98,6 +99,7 @@ export function initPostsController() {
                 initCommentsController(container);
                 initLikesForNewPosts(container);
                 initGalleryForNewPosts(container);
+                initDescriptionExpand(container);
                 
                 
             }
@@ -182,3 +184,43 @@ function openEditPopup(postElement) {
         Modal.close('modal-edit-post');
     };
 }
+const COLLAPSED_HEIGHT = 100;
+
+function initDescriptionExpand(root = document) {
+    root.querySelectorAll('.publication').forEach(pub => {
+
+        const wrapper = pub.querySelector('.publication-description-wrapper');
+        const btn = pub.querySelector('.show-more-btn');
+
+        if (!wrapper || !btn) return;
+        if (btn.dataset.bound) return;
+        btn.dataset.bound = "1";
+        
+        if (wrapper.scrollHeight <= COLLAPSED_HEIGHT + 10) {
+            btn.style.display = 'none';
+            wrapper.classList.remove('fade');
+            wrapper.style.maxHeight = 'none';
+            return;
+        }
+        
+        wrapper.style.maxHeight = COLLAPSED_HEIGHT + 'px';
+
+        btn.onclick = () => {
+            const expanded = wrapper.classList.contains('expanded');
+
+            if (expanded) {
+                wrapper.classList.remove('expanded');
+                wrapper.classList.add('fade');
+                wrapper.style.maxHeight = COLLAPSED_HEIGHT + 'px';
+                btn.textContent = 'Показать полностью';
+            } else {
+                wrapper.classList.add('expanded');
+                wrapper.classList.remove('fade');
+                wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
+                btn.textContent = 'Скрыть';
+            }
+        };
+    });
+}
+
+

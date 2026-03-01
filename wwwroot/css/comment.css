@@ -301,5 +301,279 @@
     font-style: italic;
 }
 
+/* ====== КОММЕНТАРИЙ (НОВАЯ СТРУКТУРА) ====== */
+
+.comment {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+/* Аватар */
+.comment-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+/* Правая часть */
+.comment-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ник + меню */
+.comment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.comment-username {
+    font-weight: 600;
+    color: #111;
+    text-decoration: none;
+    font-size: 15px;
+}
+
+/* Меню (редактировать / удалить) */
+.comment-actions-menu {
+    display: flex;
+    gap: 8px;
+}
+
+.comment-actions-menu button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.comment-text {
+    font-size: 15px;
+    line-height: 1.35;
+    color: #222;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+
+/* ====== ФУТЕР: дата / ответить / лайк ====== */
+
+.comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 6px;
+}
+
+.comment-date {
+    font-size: 12px;
+    color: #777;
+}
+
+/* Ответить */
+.reply-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 13px;
+}
+
+/* Лайк справа */
+.like-btn {
+    margin-left: auto;
+    background: url('../img/Heart.png') no-repeat left center;
+    background-size: 16px;
+    padding-left: 20px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    color: #666;
+}
+
+.like-btn.active {
+    background-image: url('../img/Heart Active.png');
+    color: #ff2d55;
+}
+
+.like-count {
+    margin-left: 4px;
+}
+
+/* ====== ОТВЕТЫ (оставляем твои стили) ====== */
+
+.replies-container {
+    margin-left: 20px;
+    padding-left: 5px;
+    border-left: 2px solid #e4e6eb;
+    margin-top: 12px;
+}
+/* ====== FIX: компактный TikTok-комментарий ====== */
+
+/* убираем карточный стиль */
+.comment {
+    background: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 4px 0 !important;
+    margin-bottom: 4px !important;
+}
+
+/* убираем лишний отступ под ником */
+.comment-header {
+    margin-bottom: 2px !important;
+}
+
+/* убираем лишний отступ под текстом */
+.comment-text {
+    margin-bottom: 2px !important;
+}
+
+/* убираем отступ слева у действий */
+.comment-actions {
+    padding-left: 0 !important;
+    margin-top: 2px !important;
+}
+
+/* выравниваем аватар и текст */
+.comment {
+    align-items: flex-start !important;
+}
+
+/* уменьшаем влияние аватара */
+.comment-avatar {
+    margin-top: 2px !important;
+}
+.comment-text p {
+    all: unset;
+}
+/* ====== FIX: TikTok-компактность ====== */
+
+.comment {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    padding: 0 !important;
+    margin: 0 0 6px 0 !important;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.comment-header {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.comment-text {
+    margin: 0 !important;
+    padding: 0 !important;
+    white-space: normal;
+}
+
+.comment-actions {
+    padding: 0 !important;
+    margin: 2px 0 0 0 !important;
+}
+
+.comment-avatar {
+    margin-top: 2px !important;
+}
+
+.comment-body {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+
+
+
+
+
+
+/* корневые комментарии внутри публикации */
+.publication .comments-list .comment {
+    max-width: 750px;
+}
+
+/* реплаи внутри корневого комментария */
+.publication .replies-list .comment {
+    max-width: 650px;
+}
+
+/* чтобы текст не растягивал всё к хуям */
+.comment-body {
+    max-width: 100%;
+}
+
+
+
+.comments-list > .comment {
+    max-width: 750px;
+}
+.replies-list > .comment {
+    max-width: 650px;
+}
+
+.comment-body {
+    max-width: 100%;
+}
+
+
+.comment-text {
+    display: block;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+.comment-text-wrapper {
+    position: relative;
+    max-height: 180px;
+    overflow: hidden;
+    width: 100%;
+    display: block;
+}
+.comment-text-wrapper.expanded {
+    max-height: none;
+}
+.comment-text-wrapper.fade::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, white);
+    pointer-events: none;
+}
+
+.comment-more-btn {
+    cursor: pointer;
+    color: #666;
+    font-size: 13px;
+    margin-left: 10px;
+    white-space: nowrap;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 

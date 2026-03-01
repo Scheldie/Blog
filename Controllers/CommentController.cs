@@ -10,26 +10,34 @@ namespace Blog.Controllers
     public class CommentController(CommentService service) : Controller
     {
         [HttpGet]
-        public async Task<IActionResult> GetComments(int postId)
+        public async Task<IActionResult> GetComments(int postId, int page = 1)
         {
             var userId = User.GetUserId();
-            return Ok(await service.LoadComments(
+            var pageSize = 3;
+            var comments = await service.LoadCommentsPaged(
                 c => c.PostId == postId && c.ParentId == null,
                 false,
-                userId
-            ));
+                userId,
+                page,
+                pageSize
+            );
+            return PartialView("_CommentPartialList", comments);
 
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetReplies(int commentId)
+        public async Task<IActionResult> GetReplies(int commentId, int page = 1)
         {
             var userId = User.GetUserId();
-            return Ok(await service.LoadComments(
+            var pageSize = 3;
+            var replies = await service.LoadCommentsPaged(
                 c => c.ParentId == commentId,
                 true,
-                userId
-            ));
+                userId,
+                page,
+                pageSize
+            );
+            return PartialView("_CommentPartialList", replies);
 
         }
 
@@ -40,7 +48,7 @@ namespace Blog.Controllers
             var result = await service.AddComment(model, userId);
             if (result == null) return BadRequest("Comment add failed");
 
-            return Ok(new { success = true, result });
+            return PartialView("_CommentPartial", result);
         }
 
 
@@ -48,9 +56,9 @@ namespace Blog.Controllers
         public async Task<IActionResult> EditComment([FromBody] CommentEditModel model)
         {
             var userId = User.GetUserId();
-            if(await service.EditComment(model, userId)) return Ok(new { success = true });
+            var comment = await service.EditComment(model, userId);
 
-            return BadRequest("Comment edit failed");
+            return PartialView("_CommentPartial", comment);
         }
 
 

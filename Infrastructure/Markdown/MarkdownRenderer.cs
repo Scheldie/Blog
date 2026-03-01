@@ -94,7 +94,7 @@ public class MarkdownRenderer : IMarkdownRenderer
         text = PostLinkRegex.Replace(text, m =>
         {
             var id = m.Groups[1].Value;
-            return $"[/post/{id}](/Post/{id})";
+            return $"[/post/{id}](/Post/View/{id})";
         });
 
         return text;

@@ -195,12 +195,21 @@ public class PostService(
 
     public async Task<PostModel?> GetPostByIdAsync(int userId, int postId)
     {
-        return await context.Posts
+        var post = await context.Posts
             .AsNoTracking()
-            .Where(p => p.Id == postId)
-            .Select(p => PostMapper.ToModel(p,userId))
-            .FirstOrDefaultAsync();
+            .Include(p => p.Author)
+            .Include(p => p.PostImages)
+                .ThenInclude(pi => pi.Image)
+            .FirstOrDefaultAsync(p => p.Id == postId);
+
+        if (post == null)
+            return null;
+        var postModel = PostMapper.ToModel(post, userId);
+        postModel.DescriptionHtml = _markdown.ToHtml(post.Description);
+        return postModel;
     }
+
+
 
 
     public async Task<List<PostModel>> GetPostsPageAsync(

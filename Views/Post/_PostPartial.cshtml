@@ -33,7 +33,7 @@
 
             @if (!string.IsNullOrEmpty(post.Title))
             {
-                <h2 class="publication-title">@post.Title</h2>
+                <h2 class="publication-title">@Html.Raw(post.Title)</h2>
             }
 
             @{
@@ -63,13 +63,13 @@
                     }
                 }
             </div>
-
-            @if (!string.IsNullOrEmpty(post.Description))
-            {
-                <div class="publication-description">
-                     @Html.Raw(post.DescriptionHtml)
+                <div class="publication-description-wrapper fade">
+                    <div class="publication-description">
+                        @Html.Raw(post.DescriptionHtml)
+                    </div>
                 </div>
-            }
+
+                <button class="show-more-btn">Показать полностью</button>
         </div>
 
 
@@ -93,7 +93,8 @@
         <!-- COMMENTS -->
         <div class="comments-section">
             <h3 class="comment-header">Комментарии:</h3>
-            <div class="comments-list"></div>
+            <div class="comments-list" data-page="1">
+            </div> <div class="comments-sentinel"></div>
 
             <textarea class="comment-area" placeholder="Введите ваш комментарий"></textarea>
             <button class="add-comment">Добавить комментарий</button>

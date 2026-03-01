@@ -26,17 +26,17 @@ public static class PostMapper
                 {
                     FullUrl = i?.Image?.FullUrl ?? "",
                     ThumbnailUrl = i?.Image?.ThumbnailUrl ?? "",
-                    PreviewUrl = i.Image.PreviewUrl,
-                    OriginalUrl = i.Image.OriginalUrl,
+                    PreviewUrl = i?.Image?.PreviewUrl ?? "",
+                    OriginalUrl = i?.Image?.OriginalUrl ?? "",
                 })
                 .ToList(),
             ImagesCount = post.ImagesCount,
 
             LikesCount = post.LikesCount,
-            CommentsCount = post.Comments.Count(),
+            CommentsCount = post.CommentsCount,
             ViewCount = post.ViewCount,
 
-            IsLiked = post.PostLikes.Any(l=>l.Like.UserId == userId),
+            IsLiked = post.PostLikes?.Any(l=>l?.Like?.UserId == userId) ?? false,
             IsCurrentUser = post.UserId == userId
         };
     }

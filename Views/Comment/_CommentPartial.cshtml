@@ -1,0 +1,69 @@
+﻿@model CommentModel
+
+<div class="comment"
+     data-id="@Model.Id"
+     data-parent-id="@(Model.ParentId ?? null)">
+    
+    <a href="/Profile/User?name=@Model.User.UserName">
+        <img src="/img/placeholder-avatar.png"
+             data-src="@(Model.User.AvatarPath ?? "/img/default-avatar.png")"
+             class="comment-avatar lazy" />
+    </a>
+    <div class="comment-body">
+        <div class="comment-header">
+            <a href="/Profile/User?name=@Model.User.UserName"
+               class="comment-username">@Model.User.UserName</a>
+
+            @if (Model.IsCurrentUser)
+            {
+                <div class="comment-actions-menu">
+                    <button class="edit-comment-btn">
+                        <img src="/img/edit-icon.png" width="16" />
+                    </button>
+                    <button class="delete-comment-btn">
+                        <img src="/img/delete-icon.png" width="16" />
+                    </button>
+                </div>
+            }
+        </div>
+        <div class="comment-text-wrapper">
+            <div class="comment-text">
+                @Html.Raw(Model.TextHtml)
+            </div>
+        </div>
+        <div class="comment-actions">
+            <span class="comment-date">@Model.CreatedAt</span>
+
+            <button class="reply-btn">Ответить</button>
+
+            <span class="comment-more-btn">ещё</span> 
+            
+            <button class="like-btn @(Model.IsLiked ? "active" : "")">
+                <span class="like-count">@Model.LikesCount</span>
+            </button>
+        </div>
+        
+        @if (Model.ParentId == null)
+        {
+            <div class="replies-container">
+                <div class="toggle-replies">
+                    <img src="/img/Chevron down.png" class="toggle-icon" />
+                    <span class="replies-count">@Model.RepliesCount ответов</span>
+                </div>
+
+                <div class="replies-list" style="display:none;" data-page="1">
+                    <div class="replies-sentinel"></div>
+                </div>
+            </div>
+        }
+        
+        <div class="edit-form" style="display:none;">
+            <textarea class="edit-textarea">@Model.Text</textarea>
+            <div class="edit-form-actions">
+                <button class="save-edit-btn">Сохранить</button>
+                <button class="cancel-edit-btn">Отмена</button>
+            </div>
+        </div>
+
+    </div>
+</div>

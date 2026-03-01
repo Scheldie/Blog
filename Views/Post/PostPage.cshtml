@@ -1,0 +1,8 @@
+﻿@model PostModel
+@{
+    Layout = "_MainLayout";
+}
+
+<div class="publication-container" id="posts-container">
+    @await Html.PartialAsync("_PostPartial", new List<PostModel> { Model })
+</div>

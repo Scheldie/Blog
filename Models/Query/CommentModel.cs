@@ -11,7 +11,9 @@ namespace Blog.Models
 
         [Required]
         [StringLength(600, MinimumLength = 1)]
-        public required string? Text { get; set; }
+        public required string Text { get; set; } = "";
+
+        public string TextHtml { get; set; } = "";
 
         [Required]
         public DateTime CreatedAt { get; set; }

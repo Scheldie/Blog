@@ -23,7 +23,7 @@ export const ProfileView = {
 
     updateProfileUI({ name, bio, avatarPath }) {
         if (name) document.querySelector('.profile-name').textContent = name;
-        if (bio) document.querySelector('.profile-about').textContent = bio;
+        if (bio) document.querySelector('.profile-bio').textContent = bio;
         if (avatarPath) {
             document.querySelector('.profile-avatar').src = avatarPath;
         }

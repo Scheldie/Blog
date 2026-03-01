@@ -152,3 +152,111 @@ pre code {
     color: #FFFFFF !important;
 }
 
+
+.comment-text {
+    font-size: 0.95rem;
+    line-height: 1.35;
+    color: #1a1a1a;
+    white-space: normal; 
+}
+
+
+.comment-text h1,
+.comment-text h2,
+.comment-text h3 {
+    font-weight: 600;
+    line-height: 1.25;
+    margin: 0.35rem 0 0.25rem !important;
+    color: #0f1c2e;
+}
+
+
+.comment-text h1 { font-size: 1.15rem !important; }
+.comment-text h2 { font-size: 1.1rem !important; }
+.comment-text h3 { font-size: 1.05rem !important; }
+
+
+.comment-text a {
+    color: #3b6df6;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(59, 109, 246, 0.4);
+}
+
+.comment-text a:hover {
+    color: #1f4ed8;
+    border-bottom-color: rgba(31, 78, 216, 0.6);
+}
+
+.comment-text ul {
+    padding-left: 1.1rem;
+    margin: 0.3rem 0;
+}
+
+.comment-text ul li {
+    margin: 0.15rem 0;
+}
+
+
+.comment-text code {
+    background: #f0f0f0;
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-family: Consolas, monospace;
+    font-size: .85rem;
+}
+
+.comment-text pre {
+    background: #262626;
+    padding: .6rem .7rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: .5rem 0;
+    border: 1px solid #333;
+}
+
+.comment-text pre code {
+    background: none;
+    padding: 0;
+    color: #E6E6E6;
+    font-size: .85rem;
+    font-family: "JetBrains Mono", Consolas, monospace;
+}
+
+.comment-text p {
+    margin: 0.2rem 0 !important;
+    padding: 0 !important;
+}
+.publication-description blockquote,
+.comment-text blockquote {
+    position: relative;
+    margin: 0.35rem 0;
+    padding: 0.55rem 0.75rem;
+    padding-right: 2.2rem; 
+    background: #f4f7ff;
+    border-left: 3px solid #3b6df6;
+    border-radius: 6px;
+    color: #333;
+    font-size: 0.95rem;
+    line-height: 1.35;
+}
+
+
+.publication-description blockquote::after,
+.comment-text blockquote::after {
+    content: "❞"; 
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.3rem;
+    color: #3b6df6;
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.publication-description blockquote p,
+.comment-text blockquote p {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+

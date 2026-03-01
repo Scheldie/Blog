@@ -241,9 +241,43 @@
     cursor: pointer;
     transition: transform 0.2s;
 }
-#posts-sentinel {
+#posts-sentinel,
+#feed-sentinel {
     height: 400px;
     background: transparent;
 }
+
+.publication-description-wrapper {
+    max-height: 100px;
+    overflow: hidden;
+    position: relative;
+    transition: max-height 0.3s ease;
+}
+
+.publication-description-wrapper.fade::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 120px;
+    background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.9));
+    pointer-events: none;
+}
+
+.publication-description-wrapper.expanded {
+    max-height: none;
+}
+
+.show-more-btn {
+    margin-top: 10px;
+    cursor: pointer;
+    color: #007bff;
+    font-weight: 600;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
 
 

@@ -13,7 +13,6 @@ namespace Blog.Entities
         public int UserId { get; init; }
         
         [MaxLength(2000)]
-
         public string Text { get; set; }
 
         public virtual Post? Post {  get; init; }

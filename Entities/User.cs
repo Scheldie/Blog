@@ -30,6 +30,10 @@ namespace Blog.Entities
         public string? AvatarFullUrl { get; set; } 
         [MaxLength(160)] 
         public string? AvatarOriginalUrl { get; set; }
+        
+        public int FollowersCount { get; set; }
+        
+        public int FollowingCount { get; set; }
 
         public virtual ICollection<Post>? Posts { get; init; }
 

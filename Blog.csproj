@@ -42,7 +42,6 @@
 
   <ItemGroup>
     <Folder Include="Infrastructure\Filters\" />
-    <Folder Include="Views\Partial\" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,21 @@
+﻿@model List<FollowUserModel>
+
+@foreach (var u in Model)
+{
+    <div class="follow-user" data-username="@u.UserName">
+        <a href="/Profile/User?name=@u.UserName" class="follow-user-link">
+            <img src="/img/placeholder-avatar.png"
+                 data-src="@u.AvatarPath"
+                 class="avatar lazy" />
+            <span>@u.UserName</span>
+        </a>
+        
+        @if (u.UserName != u.CurrentUsername)
+        {
+            <button class="follow-btn @(u.IsFollowing ? "following" : "")"
+                    data-user-name="@u.UserName">
+                @(u.IsFollowing ? "Отписаться" : "Подписаться")
+            </button>
+        }
+    </div>
+}

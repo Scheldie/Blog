@@ -7,22 +7,24 @@ public class CommentMapper
     public static CommentModel ToModel(
         Comment comment,
         CommentUserModel commentUser,
-        bool? isLiked = false, 
-        bool? isCurrentUser = false, 
+        string textHtml,         
+        bool? isLiked = false,
+        bool? isCurrentUser = false,
         bool? isReply = false)
     {
-        return new CommentModel()
+        return new CommentModel
         {
             Id = comment.Id,
             User = commentUser,
-            Text = comment.Text,
+            Text = comment.Text?.Trim() ?? string.Empty,
+            TextHtml = textHtml,
             CreatedAt = comment.CreatedAt,
             LikesCount = comment.LikesCount,
             ParentId = comment.ParentId,
             IsLiked = isLiked ?? false,
             IsCurrentUser = isCurrentUser ?? false,
             IsReply = isReply ?? false,
-            RepliesCount = comment.RepliesCount 
+            RepliesCount = comment.RepliesCount
         };
     }
 }

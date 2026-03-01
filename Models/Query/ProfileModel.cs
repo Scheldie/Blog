@@ -50,7 +50,13 @@ namespace Blog.Models
 
         [NotMapped]
         public bool RemoveAvatar { get; init; }
+        
+        public bool IsFollowing { get; set; }
 
+        public int FollowingCount { get; set; } = 0;
+        public int FollowersCount { get; set; } = 0;
+        
+        public string CurrentUserName {get; set;}
 
     }
 }

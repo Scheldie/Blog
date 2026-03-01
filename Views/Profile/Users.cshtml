@@ -5,6 +5,9 @@
 @model ProfileModel
 @{
 }
+@{
+    Layout = "_MainLayout";
+}
 
 
 <!Doctype html>
@@ -13,108 +16,119 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
-    <link rel="stylesheet" href="~/css/profile1.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/post.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/comment.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/like.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/modal.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/carousel.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/gallery.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/search.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/markdown.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/css/follow.css" asp-append-version="true"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
 </head>
 <body>
-    <header>
-        <nav class="index-header">
-            <ul class="header">
-                <li><a asp-controller="Feed" asp-action="Feed"><img src="~/img/blog.png" class="logo"></a></li>
-                <li class="search-container">
-                    <input type="text" id="userSearch" placeholder="Поиск пользователей..." autocomplete="off">
-                    <div id="searchResults" class="search-results-dropdown">
-                        <div id="searchResultsList"></div>
-                        <div class="show-all-results" id="showAllResults">Показать все результаты</div>
-                    </div>
-                </li>
-                <li class="profile-icon-li">
-                    <a asp-controller="Profile" asp-action="Users" asp-route-id="0">
-                        <img src="~/img/profile.png" class="profile-icon">
-                    </a>
-                </li>
-                <li class="log-out-li"><a asp-controller="Profile" asp-action="Logout">
-                    <img src="~/img/Log out.png" class="log-out-icon">
-                </a></li>
-            </ul>
-        </nav>
-    </header>
+    
 
-    <section>
-        <div class="profile-container">
-            <div class="profile-info">
-                <img src="@(Model.AvatarPath ?? "~/img/Image.png")" class="profile-avatar">
-                <ul class="profile-info-list">
-                    <li class="profile-name">@Model.UserName</li>
-                    <li class="profile-status">@(Model.IsActive ? "В сети" : "Не в сети")</li>
-                    @if (Model.IsCurrentUser)
-                    {
-                        <li class="profile-editing">
-                            <button id="editProfileBtn">Редактировать профиль</button>
-                        </li>
-                    }
-                    <li class="profile-about">
-                        @(Model.Bio ?? "Здесь размещается информация о пользователе.")
-                    </li>
-                </ul>
-            </div>
+<section>
+    <div class="profile-container" data-current-user="@Model.CurrentUserName">
 
-            <!-- Попап редактирования профиля -->
-            @if (Model.IsCurrentUser)
-            {
-                <div class="modal" id="modal-edit-profile">
-                    <div class="modal__overlay"></div>
+        <div class="profile-info">
 
-                    <div class="modal__content modal-profile">
-                        <button class="modal__close">&times;</button>
+            <!-- Аватар -->
+            <img src="@(Model.AvatarPath ?? "~/img/Image.png")" class="profile-avatar">
 
-                        <h2>Редактировать профиль</h2>
-                        <div id="profile-data"
-                             data-username="@Model.UserName"
-                             data-bio="@Model.Bio"
-                             data-avatar="@Model.AvatarPath">
+            <!-- Правый блок (всё кроме аватарки) -->
+            <div class="profile-main">
+
+                <!-- Верхняя строка: имя + кнопка -->
+                <div class="profile-header">
+
+                    <div class="profile-header-left">
+                        <div class="profile-name">@Model.UserName</div>
+                        <div class="profile-status">
+                            @(Model.IsActive ? "В сети" : "Не в сети")
                         </div>
-
-                        <form id="edit-profile-form">
-
-                            <label for="profile-name">Имя:</label>
-                            <input type="text" id="profile-name" class="modal-input" required>
-
-                            <label for="profile-about">О себе:</label>
-                            <textarea id="profile-about" class="modal-textarea"></textarea>
-
-                            
-                            <div class="avatar-wrapper">
-                                <label for="profile-avatar-input" class="avatar-upload-area">
-                                    <div id="profile-avatar-preview" class="profile-avatar-preview"></div>
-
-                                    <div class="avatar-overlay">
-                                        <span class="camera-icon">📷</span>
-                                    </div>
-                                </label>
-                                <button type="button" id="avatar-remove-btn" class="avatar-remove-btn">×</button>
-                            </div>
-                            <input type="file" id="profile-avatar-input" accept="image/*" hidden>
-
-                            <div class="modal-actions">
-                                <button type="submit" class="modal-save-btn">Сохранить</button>
-                            </div>
-                        </form>
-
                     </div>
+
+                    <div class="profile-header-right">
+                        @if (Model.IsCurrentUser)
+                        {
+                            <button id="editProfileBtn" class="edit-profile-btn">Редактировать</button>
+                        }
+                        else
+                        {
+                            <button class="follow-btn @(Model.IsFollowing ? "following" : "")"
+                                    data-user-name="@Model.UserName">
+                                @(Model.IsFollowing ? "Отписаться" : "Подписаться")
+                            </button>
+                        }
+                    </div>
+
                 </div>
 
-            }
+                <!-- Bio -->
+                <div class="profile-bio">
+                    @(Model.Bio ?? "Здесь размещается информация о пользователе.")
+                </div>
+
+                <!-- Подписки / Подписчики -->
+                <div class="profile-follow-stats">
+                    <button class="open-followers">
+                        <strong>@Model.FollowersCount</strong> Подписчики
+                    </button>
+                    <button class="open-following">
+                        <strong>@Model.FollowingCount</strong> Подписки
+                    </button>
+                </div>
+
+            </div>
         </div>
-    </section>
+        
+        @if (Model.IsCurrentUser)
+        {
+            <!-- твоя модалка редактирования профиля остаётся как есть -->
+            <div class="modal" id="modal-edit-profile">
+                <div class="modal__overlay"></div>
+
+                <div class="modal__content modal-profile">
+                    <button class="modal__close">&times;</button>
+
+                    <h2>Редактировать профиль</h2>
+                    <div id="profile-data"
+                         data-username="@Model.UserName"
+                         data-bio="@Model.Bio"
+                         data-avatar="@Model.AvatarPath">
+                    </div>
+
+                    <form id="edit-profile-form">
+
+                        <label for="profile-name">Имя:</label>
+                        <input type="text" id="profile-name" class="modal-input" required>
+
+                        <label for="profile-about">О себе:</label>
+                        <textarea id="profile-about" class="modal-textarea"></textarea>
+
+                        <div class="avatar-wrapper">
+                            <label for="profile-avatar-input" class="avatar-upload-area">
+                                <div id="profile-avatar-preview" class="profile-avatar-preview"></div>
+
+                                <div class="avatar-overlay">
+                                    <span class="camera-icon">📷</span>
+                                </div>
+                            </label>
+                            <button type="button" id="avatar-remove-btn" class="avatar-remove-btn">×</button>
+                        </div>
+                        <input type="file" id="profile-avatar-input" accept="image/*" hidden>
+
+                        <div class="modal-actions">
+                            <button type="submit" class="modal-save-btn">Сохранить</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+    
+
+
 
     @if (Model.IsCurrentUser)
     {
@@ -177,7 +191,7 @@
             </div>
         }
     </section>
-
+    
     <div class="container">
         <main role="main" class="pb-3">
             <div class="publication-container" id="posts-container" data-user-name="@Model.UserName">
@@ -225,22 +239,8 @@
 
             }
 
-            <!-- Попап галереи -->
-            <div class="modal" id="modal-gallery">
-                <div class="modal__overlay"></div>
-
-                <div class="modal__content modal-gallery">
-                    <button class="modal__close">&times;</button>
-
-                    <img id="galleryCurrentImage" class="gallery-image" src="" alt="">
-
-                    <div class="gallery-controls">
-                        <button class="gallery-nav-btn gallery-prev">&#10094;</button>
-                        <span id="galleryCounter">1/1</span>
-                        <button class="gallery-nav-btn gallery-next">&#10095;</button>
-                    </div>
-                </div>
-            </div>
+            
+            
             <!-- Попап галереи на карусели -->
             <div class="modal" id="modal-photo-view">
                 <div class="modal__overlay"></div>
@@ -251,17 +251,49 @@
                     <button class="photo-view-post-btn" id="photoViewPostBtn">Перейти к посту</button>
                 </div>
             </div>
+            
+            <div class="modal" id="follow-modal">
+                <div class="modal__overlay"></div>
+
+                <div class="modal__content follow-modal-content">
+                    <button class="modal__close">&times;</button>
+
+                    <div class="follow-tabs">
+                        <button class="follow-tab active" data-target="followers">Подписчики</button>
+                        <button class="follow-tab" data-target="following">Подписки</button>
+                    </div>
+
+                    <div class="follow-content">
+
+                        <div class="followers-container follow-pane active"
+                             data-username="@Model.UserName">
+                            <div class="followers-list" data-page="1">
+                                <div class="followers-sentinel"></div>
+                            </div>
+                        </div>
+
+                        <div class="following-container follow-pane"
+                             data-username="@Model.UserName">
+                            <div class="following-list" data-page="1">
+                                <div class="following-sentinel"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
 
 
         </main>
     </div>
 
     @section Scripts {
-        <script type="module" src="~/js/src/main.js"></script>
+        
         <script>
             var isCurrentUser = @Json.Serialize(Model.IsCurrentUser);
         </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+        
         
     }
     

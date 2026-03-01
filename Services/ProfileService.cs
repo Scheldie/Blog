@@ -12,12 +12,14 @@ public class ProfileService
     private readonly BlogDbContext _context;
     private readonly IWebHostEnvironment _env;
     private IFileService _fileService;
+    private readonly FollowService _followService;
 
-    public ProfileService(BlogDbContext context, IWebHostEnvironment env, IFileService fileService)
+    public ProfileService(BlogDbContext context, IWebHostEnvironment env, IFileService fileService, FollowService followService)
     {
         _context = context;
         _env = env;
         _fileService = fileService;
+        _followService = followService;
     }
 
     public async ValueTask<bool> EditProfile(int userId, ProfileEditModel model)
@@ -74,7 +76,13 @@ public class ProfileService
         currentUser.LastActiveAt = DateTime.UtcNow;
         if (user == null) return null;
         await _context.SaveChangesAsync();
-        return new ProfileModel(user, isCurrentUser);
+        return new ProfileModel(user, isCurrentUser)
+        {
+            IsFollowing = currentUserId != 0 && await _followService.IsFollowingAsync(currentUserId, user.Id),
+            CurrentUserName = currentUser.UserName,
+            FollowingCount = user.FollowingCount,
+            FollowersCount = user.FollowersCount,
+        };
     }
     public async ValueTask<bool> Logout(int userId)
     {

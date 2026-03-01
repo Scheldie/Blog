@@ -1,43 +1,59 @@
 ﻿using System.Linq.Expressions;
 using Blog.Data;
 using Blog.Entities;
+using Blog.Infrastructure.Markdown;
 using Blog.Models;
 using Blog.Models.Request;
 using Microsoft.EntityFrameworkCore;
 
 namespace Blog.Services;
 
-public class CommentService(BlogDbContext context, ILogger<CommentService> logger)
+public class CommentService(BlogDbContext context, ILogger<CommentService> logger, IMarkdownRenderer _markdown)
 {
     
-    public async Task<List<CommentModel>> LoadComments(
+    public async Task<List<CommentModel>> LoadCommentsPaged(
         Expression<Func<Comment, bool>> filter,
         bool isReply,
-        int userId)
+        int userId,
+        int page,
+        int pageSize)
     {
-        var comments = await context.Comments
+        var query = context.Comments
             .AsNoTracking()
-            .Where(filter)
-            .OrderByDescending(c => c.CreatedAt)
+            .Where(filter);
+        
+        query = isReply
+            ? query.OrderBy(c => c.CreatedAt)              
+            : query.OrderByDescending(c => c.CreatedAt);
+
+        var comments = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(c => new
             {
                 Comment = c,
-                IsLiked = userId > 0 && c.CommentLikes.Any(l => l.Like.UserId == userId),
-                User = new CommentUserModel{AvatarPath = c.User.AvatarSmall32Url, UserName = c.User.UserName},
+                IsLiked = userId > 0 && c.CommentLikes
+                    .Any(l => l.Like != null && l.Like.UserId == userId),
+                User = new CommentUserModel
+                {
+                    AvatarPath = c.User.AvatarSmall32Url,
+                    UserName = c.User.UserName
+                }
             })
             .ToListAsync();
-        
-        return comments
-            .Select(x => CommentMapper.ToModel(
-                x.Comment,
-                x.User,
-                x.IsLiked,
-                x.Comment.UserId == userId,
-                isReply
-            ))
-            .ToList();
 
+        return comments .Select(x =>
+            CommentMapper.ToModel( 
+                x.Comment, 
+                x.User, 
+                _markdown.ToHtml(x.Comment.Text.Trim()),
+                x.IsLiked, 
+                x.Comment.UserId == userId, 
+                isReply)
+        ) .ToList();
     }
+
+
     
     public async Task<CommentModel?> AddComment(CommentCreateModel model, int userId)
     {
@@ -82,29 +98,40 @@ public class CommentService(BlogDbContext context, ILogger<CommentService> logge
         }
 
         await context.SaveChangesAsync();
-
-        return CommentMapper.ToModel(
+        var commentModel = CommentMapper.ToModel(
             comment,
             commentUser,
+            _markdown.ToHtml(comment.Text.Trim()),
             false,
             true,
             isReply
         );
-    
+        return commentModel;
+
     }
     
-    public async ValueTask<bool> EditComment(CommentEditModel model, int userId)
+    public async Task<CommentModel?> EditComment(CommentEditModel model, int userId)
     {
+        var user = await context.Users.FindAsync(userId);
+        var commentUser = new CommentUserModel(){AvatarPath = user?.AvatarSmall32Url,  UserName = user?.UserName};
         var comment = await context.Comments
             .FirstOrDefaultAsync(c => c.Id == model.Id && c.UserId == userId);
 
-        if (comment == null) return false;
+        if (comment == null) return null;
 
         comment.Text = model.Text.Trim();
         comment.UpdatedAt = DateTime.UtcNow;
-
+        var isReply = comment.ParentId != null;
         await context.SaveChangesAsync();
-        return true;
+        var commentModel = CommentMapper.ToModel(
+            comment,
+            commentUser,
+            _markdown.ToHtml(comment.Text.Trim()),
+            false,
+            true,
+            isReply
+        );
+        return commentModel;
     }
     
     public async ValueTask<bool> DeleteComment(int commentId, int userId)
